@@ -11,15 +11,15 @@ interface UseRegisterOptions {
 export function useRegister(options?: UseRegisterOptions) {
   const [isLoading, setIsLoading] = useState(false)
 
-  const register = async (credentials: RegisterCredentials) => {
+  const register = async (_credentials: RegisterCredentials) => {
     setIsLoading(true)
     try {
       // TODO: Implement actual registration API call
       // For now, we'll just simulate success
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
       options?.onSuccess?.()
-    } catch (error) {
+    } catch (_error) {
       options?.onError?.('Registration failed')
     } finally {
       setIsLoading(false)

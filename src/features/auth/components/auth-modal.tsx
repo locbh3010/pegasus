@@ -71,7 +71,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
         onClose()
         loginForm.reset()
       }
-    } catch (error) {
+    } catch (_error) {
       notifications.show({
         title: 'Error',
         message: 'An unexpected error occurred',
@@ -82,7 +82,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
     }
   }
 
-  const handleRegister = async (values: RegisterFormData) => {
+  const handleRegister = async (_values: RegisterFormData) => {
     setIsLoading(true)
     try {
       // TODO: Implement actual registration logic
@@ -94,7 +94,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
       })
       registerForm.reset()
       onModeChange('login')
-    } catch (error) {
+    } catch (_error) {
       notifications.show({
         title: 'Registration Failed',
         message: 'An error occurred during registration',
@@ -115,9 +115,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {mode === 'login' ? 'Sign In' : 'Create Account'}
-          </DialogTitle>
+          <DialogTitle>{mode === 'login' ? 'Sign In' : 'Create Account'}</DialogTitle>
           <DialogDescription>
             {mode === 'login'
               ? 'Enter your credentials to access your account'
@@ -137,7 +135,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
                   {...loginForm.getInputProps('email')}
                 />
                 {loginForm.errors.email && (
-                  <p className="text-sm text-destructive">{loginForm.errors.email}</p>
+                  <p className="text-destructive text-sm">{loginForm.errors.email}</p>
                 )}
               </div>
 
@@ -150,7 +148,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
                   {...loginForm.getInputProps('password')}
                 />
                 {loginForm.errors.password && (
-                  <p className="text-sm text-destructive">{loginForm.errors.password}</p>
+                  <p className="text-destructive text-sm">{loginForm.errors.password}</p>
                 )}
               </div>
 
@@ -169,7 +167,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
                   {...registerForm.getInputProps('name')}
                 />
                 {registerForm.errors.name && (
-                  <p className="text-sm text-destructive">{registerForm.errors.name}</p>
+                  <p className="text-destructive text-sm">{registerForm.errors.name}</p>
                 )}
               </div>
 
@@ -182,7 +180,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
                   {...registerForm.getInputProps('email')}
                 />
                 {registerForm.errors.email && (
-                  <p className="text-sm text-destructive">{registerForm.errors.email}</p>
+                  <p className="text-destructive text-sm">{registerForm.errors.email}</p>
                 )}
               </div>
 
@@ -195,7 +193,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
                   {...registerForm.getInputProps('password')}
                 />
                 {registerForm.errors.password && (
-                  <p className="text-sm text-destructive">{registerForm.errors.password}</p>
+                  <p className="text-destructive text-sm">{registerForm.errors.password}</p>
                 )}
               </div>
 
@@ -208,7 +206,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
                   {...registerForm.getInputProps('confirmPassword')}
                 />
                 {registerForm.errors.confirmPassword && (
-                  <p className="text-sm text-destructive">{registerForm.errors.confirmPassword}</p>
+                  <p className="text-destructive text-sm">{registerForm.errors.confirmPassword}</p>
                 )}
               </div>
 
@@ -221,12 +219,12 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
           <Separator />
 
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
             </p>
             <Button
-              variant="link"
-              className="p-0 h-auto"
+              variant="ghost"
+              className="h-auto p-0"
               onClick={() => onModeChange(mode === 'login' ? 'register' : 'login')}
             >
               {mode === 'login' ? 'Create one here' : 'Sign in here'}

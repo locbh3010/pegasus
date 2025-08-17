@@ -1,26 +1,33 @@
 // Note: This file contains Supabase utilities but we're now using NextAuth
 // These functions are kept for potential future database operations
-import type { Database, TablesInsert, TablesUpdate } from '@/types/supabase'
+import type { TablesInsert, TablesUpdate } from '@/types/supabase'
 
 type TaskInsert = TablesInsert<'tasks'>
 type TaskUpdate = TablesUpdate<'tasks'>
 
 // Mock supabase client for now since we're using NextAuth
+const createMockQueryBuilder = () => ({
+  select: (_columns?: string) => createMockQueryBuilder(),
+  eq: (_column: string, _value: unknown) => createMockQueryBuilder(),
+  order: (_column: string, _options?: { ascending?: boolean }) => createMockQueryBuilder(),
+  insert: (_data: unknown) => createMockQueryBuilder(),
+  update: (_data: unknown) => createMockQueryBuilder(),
+  delete: () => createMockQueryBuilder(),
+  single: () => createMockQueryBuilder(),
+  data: [],
+  error: null as { message: string } | null,
+})
+
 const supabase = {
-  from: () => ({
-    select: () => ({ eq: () => ({ order: () => ({ data: [], error: null }) }) }),
-    insert: () => ({ select: () => ({ single: () => ({ data: null, error: null }) }) }),
-    update: () => ({ eq: () => ({ select: () => ({ single: () => ({ data: null, error: null }) }) }) }),
-    delete: () => ({ eq: () => ({ error: null }) }),
-  }),
+  from: (_table: string) => createMockQueryBuilder(),
   auth: {
-    getUser: () => ({ data: { user: null }, error: null }),
-    signInWithPassword: () => ({ data: null, error: null }),
-    signUp: () => ({ data: null, error: null }),
-    signOut: () => ({ error: null }),
+    getUser: () => Promise.resolve({ data: { user: null }, error: null as { message: string } | null }),
+    signInWithPassword: (_credentials: unknown) => Promise.resolve({ data: null, error: null as { message: string } | null }),
+    signUp: (_credentials: unknown) => Promise.resolve({ data: null, error: null as { message: string } | null }),
+    signOut: () => Promise.resolve({ error: null as { message: string } | null }),
   },
-  channel: () => ({
-    on: () => ({ subscribe: () => ({}) }),
+  channel: (_name: string) => ({
+    on: (_event: string, _config: unknown, _callback: unknown) => ({ subscribe: () => ({}) }),
   }),
 }
 
@@ -79,7 +86,7 @@ export const taskOperations = {
 
   // Toggle task completion
   async toggleTask(id: string, completed: boolean) {
-    return this.updateTask(id, { completed })
+    return this.updateTask(id, { completed_at: completed ? new Date().toISOString() : null })
   },
 }
 

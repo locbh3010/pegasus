@@ -5,7 +5,6 @@ import { QueryProvider } from '@/components/query-provider'
 import { AuthProvider } from '@/components/auth-provider'
 import { MantineProviderWrapper } from '@/components/mantine-provider'
 
-
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -29,12 +28,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} bg-background text-foreground antialiased`}
+      >
         <MantineProviderWrapper>
           <AuthProvider>
-            <QueryProvider>
-              {children}
-            </QueryProvider>
+            <QueryProvider>{children}</QueryProvider>
           </AuthProvider>
         </MantineProviderWrapper>
       </body>

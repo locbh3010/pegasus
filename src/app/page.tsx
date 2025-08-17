@@ -37,10 +37,8 @@ export default function Home() {
             components. Experience the perfect blend of performance, type safety, and beautiful
             design.
           </p>
-          <div className="flex justify-center gap-4 flex-wrap">
-            <Button size="lg">
-              Get Started
-            </Button>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button size="lg">Get Started</Button>
             <Button variant="outline" size="lg">
               Learn More
             </Button>
@@ -63,9 +61,7 @@ export default function Home() {
           <p className="text-muted-foreground">
             Create your account and start managing your tasks with our modern, secure platform.
           </p>
-          <Button size="lg">
-            Create Account
-          </Button>
+          <Button size="lg">Create Account</Button>
         </div>
 
         <footer className="border-border text-muted-foreground mt-16 border-t pt-8 text-center text-sm">

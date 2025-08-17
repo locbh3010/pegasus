@@ -7,7 +7,17 @@ import { useLogout } from '../hooks/use-logout'
 interface LogoutButtonProps {
   onSuccess?: () => void
   onError?: (error: string) => void
-  variant?: 'primary' | 'mono' | 'destructive' | 'secondary' | 'outline' | 'dashed' | 'ghost' | 'dim' | 'foreground' | 'inverse'
+  variant?:
+    | 'primary'
+    | 'mono'
+    | 'destructive'
+    | 'secondary'
+    | 'outline'
+    | 'dashed'
+    | 'ghost'
+    | 'dim'
+    | 'foreground'
+    | 'inverse'
   size?: 'lg' | 'md' | 'sm' | 'icon'
   className?: string
   showIcon?: boolean
@@ -23,17 +33,17 @@ export function LogoutButton({
   showIcon = true,
   children,
 }: LogoutButtonProps) {
-  const logoutMutation = useLogout({
+  const { logout, isLoading } = useLogout({
     onSuccess: () => {
       onSuccess?.()
     },
     onError: (error) => {
-      onError?.(error.message)
+      onError?.(error)
     },
   })
 
   const handleLogout = () => {
-    logoutMutation.mutate()
+    logout()
   }
 
   return (
@@ -41,11 +51,11 @@ export function LogoutButton({
       variant={variant}
       size={size}
       onClick={handleLogout}
-      disabled={logoutMutation.isPending}
+      disabled={isLoading}
       className={className}
     >
-      {showIcon && <LogOut className="w-4 h-4 mr-2" />}
-      {children || (logoutMutation.isPending ? 'Signing Out...' : 'Sign Out')}
+      {showIcon && <LogOut className="mr-2 h-4 w-4" />}
+      {children || (isLoading ? 'Signing Out...' : 'Sign Out')}
     </Button>
   )
 }

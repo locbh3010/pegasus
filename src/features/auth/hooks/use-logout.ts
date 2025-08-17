@@ -16,7 +16,7 @@ export function useLogout(options?: UseLogoutOptions) {
     try {
       await signOut({ callbackUrl: '/' })
       options?.onSuccess?.()
-    } catch (error) {
+    } catch (_error) {
       options?.onError?.('Failed to logout')
     } finally {
       setIsLoading(false)

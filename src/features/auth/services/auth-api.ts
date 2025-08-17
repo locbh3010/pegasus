@@ -7,10 +7,10 @@ const transformUser = (user: unknown): AuthUser => {
   return {
     id: userObj.id as string,
     email: userObj.email as string,
-    full_name: userObj.full_name as string || userObj.email as string,
+    full_name: (userObj.full_name as string) || (userObj.email as string),
     avatar_url: userObj.avatar_url as string | null,
-    role: userObj.role as string || 'user',
-    status: userObj.status as string || 'active',
+    role: (userObj.role as string) || 'user',
+    status: (userObj.status as string) || 'active',
     department: userObj.department as string | null,
     position: userObj.position as string | null,
     phone: userObj.phone as string | null,
@@ -98,7 +98,10 @@ export const authApi = {
   // Get current user
   async getCurrentUser(): Promise<AuthUser | null> {
     try {
-      const { data: { user }, error } = await supabase.auth.getUser()
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser()
 
       if (error) {
         throw new Error(error.message)
@@ -114,7 +117,10 @@ export const authApi = {
   // Get current session
   async getCurrentSession() {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession()
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession()
 
       if (error) {
         throw new Error(error.message)
@@ -145,8 +151,9 @@ export const authApi = {
 
   // Listen to auth state changes
   onAuthStateChange(callback: (user: AuthUser | null) => void) {
-    return supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      const user = session?.user ? transformUser(session.user) : null
+    return supabase.auth.onAuthStateChange((_event: unknown, session: unknown) => {
+      const sessionObj = session as Record<string, unknown> | null
+      const user = sessionObj?.user ? transformUser(sessionObj.user) : null
       callback(user)
     })
   },

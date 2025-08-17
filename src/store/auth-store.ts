@@ -43,19 +43,10 @@ export const useAuthStore = create<AuthState>()(
             'auth/setUser'
           ),
 
-        setLoading: (loading) =>
-          set(
-            { isLoading: loading },
-            false,
-            'auth/setLoading'
-          ),
+        setLoading: (loading) => set({ isLoading: loading }, false, 'auth/setLoading'),
 
         setSessionExpiry: (expiry) =>
-          set(
-            { sessionExpiry: expiry },
-            false,
-            'auth/setSessionExpiry'
-          ),
+          set({ sessionExpiry: expiry }, false, 'auth/setSessionExpiry'),
 
         login: (user) =>
           set(

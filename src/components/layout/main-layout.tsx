@@ -19,42 +19,32 @@ export const MainLayout = ({ children }: LayoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       {/* Navbar */}
-      <Navbar 
-        onSidebarToggle={toggleSidebar} 
-        isSidebarOpen={isSidebarOpen}
-      />
-      
+      <Navbar onSidebarToggle={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+
       <div className="flex">
         {/* Sidebar - only show when authenticated */}
-        {session && (
-          <Sidebar 
-            isOpen={isSidebarOpen} 
-            onClose={closeSidebar}
-          />
-        )}
-        
+        {session && <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />}
+
         {/* Main Content */}
-        <main 
+        <main
           className={`flex-1 transition-all duration-300 ${
-            session && isSidebarOpen 
-              ? 'lg:ml-64' 
-              : session 
-                ? 'lg:ml-16' 
-                : ''
+            session && isSidebarOpen ? 'lg:ml-64' : session ? 'lg:ml-16' : ''
           }`}
         >
-          <div className="pt-16"> {/* Account for fixed navbar height */}
+          <div className="pt-16">
+            {' '}
+            {/* Account for fixed navbar height */}
             {children}
           </div>
         </main>
       </div>
-      
+
       {/* Mobile sidebar overlay */}
       {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+        <div
+          className="bg-opacity-50 fixed inset-0 z-40 bg-black lg:hidden"
           onClick={closeSidebar}
         />
       )}

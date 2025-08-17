@@ -8,7 +8,7 @@ export const authOptions: NextAuthOptions = {
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -22,32 +22,31 @@ export const authOptions: NextAuthOptions = {
           // 1. Validate credentials against your database
           // 2. Hash and compare passwords
           // 3. Return user data if valid
-          
+
           // For now, we'll use a simple mock
           if (credentials.email === 'demo@example.com' && credentials.password === 'password') {
             return {
               id: '1',
               email: credentials.email,
               name: 'Demo User',
-              image: null
+              image: null,
             } as NextAuthUser
           }
-          
+
           return null
         } catch (error) {
           console.error('Authentication error:', error)
           return null
         }
-      }
-    })
+      },
+    }),
   ],
   session: {
-    strategy: 'jwt'
+    strategy: 'jwt',
   },
   pages: {
     signIn: '/', // We'll handle auth via modals, not separate pages
-    signUp: '/',
-    error: '/'
+    error: '/',
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -57,11 +56,17 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string
+      if (token && session.user) {
+        const user = session.user as {
+          id?: string
+          name?: string | null
+          email?: string | null
+          image?: string | null
+        }
+        user.id = token.id as string
       }
       return session
-    }
+    },
   },
-  secret: process.env.NEXTAUTH_SECRET
+  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-for-development',
 }

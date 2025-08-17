@@ -26,7 +26,7 @@ export function useLogin(options?: UseLoginOptions) {
       } else {
         options?.onSuccess?.()
       }
-    } catch (error) {
+    } catch (_error) {
       options?.onError?.('An unexpected error occurred')
     } finally {
       setIsLoading(false)

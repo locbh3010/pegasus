@@ -10,7 +10,6 @@ import '@mantine/notifications/styles.css'
 
 const theme = createTheme({
   /** Put your mantine theme override here */
-  colorScheme: 'dark',
 })
 
 interface MantineProviderWrapperProps {
