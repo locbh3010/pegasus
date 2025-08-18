@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { UserService } from './user-service'
 import type { LoginCredentials, RegisterCredentials, AuthUser, AuthError } from '../types'
 
 // Transform Supabase user to our AuthUser type
@@ -50,14 +51,15 @@ export const authApi = {
   // Register new user
   async register(credentials: RegisterCredentials): Promise<AuthUser> {
     try {
-      // Validate password confirmation
-      if (credentials.password !== credentials.confirmPassword) {
-        throw new Error('Passwords do not match')
-      }
-
+      // Step 1: Create auth user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email: credentials.email,
         password: credentials.password,
+        options: {
+          data: {
+            username: credentials.username,
+          },
+        },
       })
 
       if (error) {
@@ -66,6 +68,25 @@ export const authApi = {
 
       if (!data.user) {
         throw new Error('Registration failed: No user data returned')
+      }
+
+      // Step 2: Create user record in database using service client
+      try {
+        if (!data.user.email) {
+          throw new Error('Registration failed: No email provided')
+        }
+
+        await UserService.createUser({
+          id: data.user.id,
+          email: data.user.email,
+          username: credentials.username,
+          full_name: credentials.username,
+        })
+      } catch (dbError) {
+        console.error('Failed to create user record in database:', dbError)
+        throw new Error(
+          `Account created but profile setup failed: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`
+        )
       }
 
       return transformUser(data.user)

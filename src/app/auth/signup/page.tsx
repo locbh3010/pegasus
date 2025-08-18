@@ -7,35 +7,48 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardHeading,
+  CardToolbar,
+  CardFooter,
+} from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
-import { Checkbox } from '@/components/ui/checkbox'
+import { OAuthButtons } from '@/features/auth/components/oauth-buttons'
 import { Rocket, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
 
 interface SignUpFormData {
-  name: string
+  username: string
   email: string
   password: string
-  confirmPassword: string
-  acceptTerms: boolean
 }
 
 export default function SignUpPage() {
   const router = useRouter()
-  const { user, loading, signUp } = useAuth()
+  const { user, loading, signUp, signInWithOAuth } = useAuth()
   const [formData, setFormData] = useState<SignUpFormData>({
-    name: '',
+    username: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    acceptTerms: false,
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [oauthLoading, setOauthLoading] = useState<{
+    facebook: boolean
+    github: boolean
+    google: boolean
+  }>({
+    facebook: false,
+    github: false,
+    google: false,
+  })
 
   // Check if user is already authenticated
   useEffect(() => {
@@ -45,10 +58,10 @@ export default function SignUpPage() {
   }, [user, loading, router])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target
+    const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: value,
     }))
     // Clear error when user starts typing
     if (error) {
@@ -60,8 +73,14 @@ export default function SignUpPage() {
   }
 
   const validateForm = (): string | null => {
-    if (!formData.name.trim()) {
-      return 'Name is required'
+    if (!formData.username.trim()) {
+      return 'Username is required'
+    }
+    if (formData.username.length < 3) {
+      return 'Username must be at least 3 characters long'
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      return 'Username can only contain letters, numbers, and underscores'
     }
     if (!formData.email.trim()) {
       return 'Email is required'
@@ -71,12 +90,6 @@ export default function SignUpPage() {
     }
     if (formData.password.length < 8) {
       return 'Password must be at least 8 characters long'
-    }
-    if (formData.password !== formData.confirmPassword) {
-      return 'Passwords do not match'
-    }
-    if (!formData.acceptTerms) {
-      return 'You must accept the terms and conditions'
     }
     return null
   }
@@ -95,7 +108,7 @@ export default function SignUpPage() {
     }
 
     try {
-      const result = await signUp(formData.email, formData.password)
+      const result = await signUp(formData.email, formData.password, formData.username)
 
       if (result.error) {
         setError(result.error)
@@ -115,19 +128,36 @@ export default function SignUpPage() {
     }
   }
 
+  const handleOAuthSignIn = async (provider: 'facebook' | 'github' | 'google') => {
+    setOauthLoading((prev) => ({ ...prev, [provider]: true }))
+    setError(null)
+
+    try {
+      const result = await signInWithOAuth(provider)
+
+      if (result.error) {
+        setError(result.error)
+      }
+      // Note: On success, the user will be redirected to the callback page
+    } catch (err) {
+      setError(`Failed to sign up with ${provider}. Please try again.`)
+      console.error(`${provider} OAuth error:`, err)
+    } finally {
+      setOauthLoading((prev) => ({ ...prev, [provider]: false }))
+    }
+  }
+
   const isFormValid =
-    formData.name.trim() !== '' &&
+    formData.username.trim() !== '' &&
     formData.email.trim() !== '' &&
-    formData.password.trim() !== '' &&
-    formData.confirmPassword.trim() !== '' &&
-    formData.acceptTerms
+    formData.password.trim() !== ''
 
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
+      <div className="w-full max-w-lg space-y-6">
         {/* Header */}
         <div className="text-center">
-          <div className="mb-4 flex justify-center">
+          <div className="mb-2 flex justify-center">
             <Rocket className="text-primary h-12 w-12" />
           </div>
           <h1 className="text-foreground text-3xl font-bold">Create account</h1>
@@ -135,13 +165,16 @@ export default function SignUpPage() {
         </div>
 
         {/* Sign Up Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign Up</CardTitle>
-            <CardDescription>Create your account to get started</CardDescription>
+        <Card className="w-full max-w-[500px]" variant="accent">
+          <CardHeader className="px-6 py-6">
+            <CardHeading>
+              <CardTitle className="text-xl">Sign Up</CardTitle>
+              <CardDescription>Create your account to get started</CardDescription>
+            </CardHeading>
+            <CardToolbar>{/* Optional toolbar items */}</CardToolbar>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <CardContent className="pt-6 pb-6">
+            <form onSubmit={handleSubmit} className="space-y-4" data-form-type="other">
               {/* Error Alert */}
               {error && (
                 <Alert variant="destructive">
@@ -158,28 +191,35 @@ export default function SignUpPage() {
                 </Alert>
               )}
 
-              {/* Name Field */}
+              {/* Username Field */}
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="username">
+                  Username <span className="text-destructive">*</span>
+                </Label>
                 <Input
-                  id="name"
-                  name="name"
+                  id="username"
+                  name="username"
                   type="text"
-                  placeholder="Enter your full name"
-                  value={formData.name}
+                  placeholder="Enter your username"
+                  value={formData.username}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
                 />
+                <p className="text-muted-foreground text-xs">
+                  Username must be at least 3 characters (letters, numbers, and underscores only)
+                </p>
               </div>
 
               {/* Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">
+                  Email <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="email"
                   name="email"
-                  type="email"
+                  type="text"
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleInputChange}
@@ -190,7 +230,9 @@ export default function SignUpPage() {
 
               {/* Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">
+                  Password <span className="text-destructive">*</span>
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -218,60 +260,6 @@ export default function SignUpPage() {
                 </p>
               </div>
 
-              {/* Confirm Password Field */}
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="Confirm your password"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    required
-                    disabled={isLoading}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    disabled={isLoading}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Terms and Conditions */}
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="acceptTerms"
-                  name="acceptTerms"
-                  checked={formData.acceptTerms}
-                  onCheckedChange={(checked) =>
-                    setFormData((prev) => ({ ...prev, acceptTerms: checked as boolean }))
-                  }
-                  disabled={isLoading}
-                />
-                <Label htmlFor="acceptTerms" className="text-sm">
-                  I agree to the{' '}
-                  <Link href="/terms" className="text-primary hover:underline">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link href="/privacy" className="text-primary hover:underline">
-                    Privacy Policy
-                  </Link>
-                </Label>
-              </div>
-
               {/* Submit Button */}
               <Button
                 type="submit"
@@ -283,16 +271,38 @@ export default function SignUpPage() {
               </Button>
             </form>
 
-            <div className="mt-6">
-              <Separator />
-              <div className="mt-6 text-center text-sm">
-                <span className="text-muted-foreground">Already have an account? </span>
-                <Link href="/auth/signin" className="text-primary font-medium hover:underline">
-                  Sign in
-                </Link>
+            {/* OAuth Buttons */}
+            <div className="mt-6 space-y-4">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator className="w-full" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background text-muted-foreground px-2">
+                    Or continue with social
+                  </span>
+                </div>
               </div>
+
+              <OAuthButtons
+                onGoogleClick={() => handleOAuthSignIn('google')}
+                onFacebookClick={() => handleOAuthSignIn('facebook')}
+                onGitHubClick={() => handleOAuthSignIn('github')}
+                disabled={isLoading}
+                googleLoading={oauthLoading.google}
+                facebookLoading={oauthLoading.facebook}
+                githubLoading={oauthLoading.github}
+              />
             </div>
           </CardContent>
+          <CardFooter className="justify-center">
+            <div className="text-center text-sm">
+              <span className="text-muted-foreground">Already have an account? </span>
+              <Link href="/auth/signin" className="text-primary font-medium hover:underline">
+                Sign in
+              </Link>
+            </div>
+          </CardFooter>
         </Card>
 
         {/* Footer */}

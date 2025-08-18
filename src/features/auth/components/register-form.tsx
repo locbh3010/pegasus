@@ -1,24 +1,29 @@
 'use client'
 
-import { Formik, Form, Field, ErrorMessage } from 'formik'
+import { Formik, Form, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardHeading,
+} from '@/components/ui/card'
+import { FormikField } from '@/components/ui/formik-field'
 import { useRegister } from '../hooks/use-register'
 import type { RegisterCredentials } from '../types'
 
 const registerValidationSchema = Yup.object({
+  username: Yup.string()
+    .min(3, 'Username must be at least 3 characters')
+    .matches(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
+    .required('Username is required'),
   email: Yup.string().email('Invalid email address').required('Email is required'),
   password: Yup.string()
-    .min(6, 'Password must be at least 6 characters')
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      'Password must contain at least one uppercase letter, one lowercase letter, and one number'
-    )
+    .min(8, 'Password must be at least 8 characters')
     .required('Password is required'),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref('password')], 'Passwords must match')
-    .required('Please confirm your password'),
 })
 
 interface RegisterFormProps {
@@ -42,94 +47,86 @@ export function RegisterForm({ onSuccess, onError, className }: RegisterFormProp
   }
 
   return (
-    <Card className={`p-6 ${className || ''}`}>
-      <div className="space-y-4">
-        <div className="text-center">
-          <h2 className="text-foreground text-2xl font-bold">Create Account</h2>
-          <p className="text-muted-foreground">Sign up to get started with your account</p>
+    <Card className={`w-full max-w-[500px] ${className || ''}`} variant="accent">
+      <CardHeader className="px-6 py-6">
+        <CardHeading>
+          <CardTitle className="text-xl">Create Account</CardTitle>
+          <CardDescription>Sign up to get started with your account</CardDescription>
+        </CardHeading>
+      </CardHeader>
+      <CardContent className="pt-6 pb-6">
+        <div className="space-y-4">
+          <Formik
+            initialValues={{
+              username: '',
+              email: '',
+              password: '',
+            }}
+            validationSchema={registerValidationSchema}
+            onSubmit={handleSubmit}
+          >
+            {({ isValid, dirty }) => (
+              <Form className="space-y-4" data-form-type="other">
+                <div>
+                  <label
+                    htmlFor="username"
+                    className="text-foreground mb-1 block text-sm font-medium"
+                  >
+                    Username <span className="text-destructive">*</span>
+                  </label>
+                  <FormikField
+                    id="username"
+                    name="username"
+                    type="text"
+                    placeholder="Enter your username"
+                  />
+                  <ErrorMessage
+                    name="username"
+                    component="div"
+                    className="text-destructive mt-1 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="text-foreground mb-1 block text-sm font-medium">
+                    Email Address <span className="text-destructive">*</span>
+                  </label>
+                  <FormikField id="email" name="email" type="text" placeholder="Enter your email" />
+                  <ErrorMessage
+                    name="email"
+                    component="div"
+                    className="text-destructive mt-1 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="text-foreground mb-1 block text-sm font-medium"
+                  >
+                    Password <span className="text-destructive">*</span>
+                  </label>
+                  <FormikField
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Create a password"
+                  />
+                  <ErrorMessage
+                    name="password"
+                    component="div"
+                    className="text-destructive mt-1 text-sm"
+                  />
+                </div>
+
+                <Button type="submit" disabled={!isValid || !dirty || isLoading} className="w-full">
+                  {isLoading ? 'Creating Account...' : 'Create Account'}
+                </Button>
+              </Form>
+            )}
+          </Formik>
         </div>
-
-        <Formik
-          initialValues={{
-            email: '',
-            password: '',
-            confirmPassword: '',
-          }}
-          validationSchema={registerValidationSchema}
-          onSubmit={handleSubmit}
-        >
-          {({ isValid, dirty }) => (
-            <Form className="space-y-4">
-              <div>
-                <label htmlFor="email" className="text-foreground mb-1 block text-sm font-medium">
-                  Email Address *
-                </label>
-                <Field
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  className="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring w-full rounded-md border px-3 py-2 focus:ring-2 focus:ring-offset-2 focus:outline-none"
-                  placeholder="Enter your email"
-                />
-                <ErrorMessage
-                  name="email"
-                  component="div"
-                  className="text-destructive mt-1 text-sm"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="password"
-                  className="text-foreground mb-1 block text-sm font-medium"
-                >
-                  Password *
-                </label>
-                <Field
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  className="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring w-full rounded-md border px-3 py-2 focus:ring-2 focus:ring-offset-2 focus:outline-none"
-                  placeholder="Create a password"
-                />
-                <ErrorMessage
-                  name="password"
-                  component="div"
-                  className="text-destructive mt-1 text-sm"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="text-foreground mb-1 block text-sm font-medium"
-                >
-                  Confirm Password *
-                </label>
-                <Field
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  className="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring w-full rounded-md border px-3 py-2 focus:ring-2 focus:ring-offset-2 focus:outline-none"
-                  placeholder="Confirm your password"
-                />
-                <ErrorMessage
-                  name="confirmPassword"
-                  component="div"
-                  className="text-destructive mt-1 text-sm"
-                />
-              </div>
-
-              <Button type="submit" disabled={!isValid || !dirty || isLoading} className="w-full">
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </Button>
-            </Form>
-          )}
-        </Formik>
-      </div>
+      </CardContent>
     </Card>
   )
 }

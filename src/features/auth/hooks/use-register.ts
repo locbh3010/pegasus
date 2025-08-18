@@ -16,7 +16,7 @@ export function useRegister(options?: UseRegisterOptions) {
   const register = async (credentials: RegisterCredentials) => {
     setIsLoading(true)
     try {
-      const result = await signUp(credentials.email, credentials.password)
+      const result = await signUp(credentials.email, credentials.password, credentials.username)
 
       if (result.error) {
         options?.onError?.(result.error)

@@ -41,10 +41,17 @@ export async function middleware(request: NextRequest) {
   // Define protected routes
   const protectedRoutes = ['/dashboard']
   const authRoutes = ['/auth/signin', '/auth/signup']
+  const callbackRoute = '/auth/callback'
   const isProtectedRoute = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   )
   const isAuthRoute = authRoutes.includes(request.nextUrl.pathname)
+  const isCallbackRoute = request.nextUrl.pathname === callbackRoute
+
+  // Allow callback route to process OAuth
+  if (isCallbackRoute) {
+    return supabaseResponse
+  }
 
   // Redirect unauthenticated users from protected routes to sign in
   if (isProtectedRoute && !user) {

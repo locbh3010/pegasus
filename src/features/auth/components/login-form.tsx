@@ -1,9 +1,10 @@
 'use client'
 
-import { Formik, Form, Field, ErrorMessage } from 'formik'
+import { Formik, Form, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { FormikField } from '@/components/ui/formik-field'
 import { useLogin } from '../hooks/use-login'
 import type { LoginCredentials } from '../types'
 
@@ -35,7 +36,7 @@ export function LoginForm({ onSuccess, onError, className }: LoginFormProps) {
   }
 
   return (
-    <Card className={`p-6 ${className || ''}`}>
+    <Card className={`p-6 ${className || ''}`} variant="accent">
       <div className="space-y-4">
         <div className="text-center">
           <h2 className="text-foreground text-2xl font-bold">Sign In</h2>
@@ -51,19 +52,12 @@ export function LoginForm({ onSuccess, onError, className }: LoginFormProps) {
           onSubmit={handleSubmit}
         >
           {({ isValid, dirty }) => (
-            <Form className="space-y-4">
+            <Form className="space-y-4" data-form-type="other">
               <div>
                 <label htmlFor="email" className="text-foreground mb-1 block text-sm font-medium">
                   Email Address *
                 </label>
-                <Field
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  className="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring w-full rounded-md border px-3 py-2 focus:ring-2 focus:ring-offset-2 focus:outline-none"
-                  placeholder="Enter your email"
-                />
+                <FormikField id="email" name="email" type="text" placeholder="Enter your email" />
                 <ErrorMessage
                   name="email"
                   component="div"
@@ -78,12 +72,10 @@ export function LoginForm({ onSuccess, onError, className }: LoginFormProps) {
                 >
                   Password *
                 </label>
-                <Field
+                <FormikField
                   id="password"
                   name="password"
                   type="password"
-                  autoComplete="current-password"
-                  className="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring w-full rounded-md border px-3 py-2 focus:ring-2 focus:ring-offset-2 focus:outline-none"
                   placeholder="Enter your password"
                 />
                 <ErrorMessage
