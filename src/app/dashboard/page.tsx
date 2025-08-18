@@ -17,11 +17,7 @@ export default function DashboardPage() {
 
   // Show loading state while checking authentication
   if (status === 'loading') {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2" />
-      </div>
-    )
+    return <div />
   }
 
   // Don't render if not authenticated
@@ -29,14 +25,5 @@ export default function DashboardPage() {
     return null
   }
 
-  return (
-    <div className="bg-background min-h-screen p-6">
-      <div className="mx-auto max-w-4xl">
-        <h1 className="text-foreground mb-4 text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome to your dashboard. Content will be added here.
-        </p>
-      </div>
-    </div>
-  )
+  return <div />
 }

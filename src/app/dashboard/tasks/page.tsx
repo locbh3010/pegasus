@@ -17,11 +17,7 @@ export default function TasksPage() {
 
   // Show loading state while checking authentication
   if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    )
+    return <div />
   }
 
   // Don't render if not authenticated
@@ -29,14 +25,5 @@ export default function TasksPage() {
     return null
   }
 
-  return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-foreground mb-4">Tasks</h1>
-        <p className="text-muted-foreground">
-          Task management content will be added here.
-        </p>
-      </div>
-    </div>
-  )
+  return <div />
 }
