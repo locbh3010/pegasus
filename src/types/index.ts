@@ -67,13 +67,3 @@ export interface BaseComponentProps {
 export interface LayoutProps {
   children: React.ReactNode
 }
-
-export interface NavbarProps {
-  onSidebarToggle: () => void
-  isSidebarOpen: boolean
-}
-
-export interface SidebarProps {
-  isOpen: boolean
-  onClose: () => void
-}
