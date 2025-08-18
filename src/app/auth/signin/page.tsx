@@ -35,7 +35,7 @@ interface ValidationErrors {
 
 export default function SignInPage() {
   const router = useRouter()
-  const { user, loading, signIn, signInWithOAuth } = useAuth()
+  const { user, loading, signIn, signInWithOAuth, oauthLoading } = useAuth()
   const [formData, setFormData] = useState<SignInFormData>({
     email: '',
     password: '',
@@ -44,15 +44,6 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
-  const [oauthLoading, setOauthLoading] = useState<{
-    facebook: boolean
-    github: boolean
-    google: boolean
-  }>({
-    facebook: false,
-    github: false,
-    google: false,
-  })
 
   // Check if user is already authenticated
   useEffect(() => {
@@ -138,8 +129,7 @@ export default function SignInPage() {
     }
   }
 
-  const handleOAuthSignIn = async (provider: 'facebook' | 'github' | 'google') => {
-    setOauthLoading((prev) => ({ ...prev, [provider]: true }))
+  const handleOAuthSignIn = async (provider: 'github' | 'google') => {
     setError(null)
 
     try {
@@ -149,11 +139,10 @@ export default function SignInPage() {
         setError(result.error)
       }
       // Note: On success, the user will be redirected to the callback page
+      // OAuth loading state is managed by the AuthProvider
     } catch (err) {
       setError(`Failed to sign in with ${provider}. Please try again.`)
       console.error(`${provider} OAuth error:`, err)
-    } finally {
-      setOauthLoading((prev) => ({ ...prev, [provider]: false }))
     }
   }
 
@@ -211,10 +200,12 @@ export default function SignInPage() {
                   data-form-type="other"
                   data-lpignore="true"
                   data-1p-ignore="true"
-                  className={validationErrors.email ? 'border-destructive' : ''}
+                  className={
+                    validationErrors.email ? 'border-destructive focus:border-destructive' : ''
+                  }
                 />
                 {validationErrors.email && (
-                  <p className="text-destructive text-sm">{validationErrors.email}</p>
+                  <p className="text-destructive mt-1 text-sm">{validationErrors.email}</p>
                 )}
               </div>
 
@@ -240,7 +231,9 @@ export default function SignInPage() {
                     data-form-type="other"
                     data-lpignore="true"
                     data-1p-ignore="true"
-                    className={validationErrors.password ? 'border-destructive' : ''}
+                    className={
+                      validationErrors.password ? 'border-destructive focus:border-destructive' : ''
+                    }
                   />
                   <Button
                     type="button"
@@ -254,7 +247,7 @@ export default function SignInPage() {
                   </Button>
                 </div>
                 {validationErrors.password && (
-                  <p className="text-destructive text-sm">{validationErrors.password}</p>
+                  <p className="text-destructive mt-1 text-sm">{validationErrors.password}</p>
                 )}
               </div>
 
@@ -284,11 +277,9 @@ export default function SignInPage() {
 
               <OAuthButtons
                 onGoogleClick={() => handleOAuthSignIn('google')}
-                onFacebookClick={() => handleOAuthSignIn('facebook')}
                 onGitHubClick={() => handleOAuthSignIn('github')}
                 disabled={isLoading}
                 googleLoading={oauthLoading.google}
-                facebookLoading={oauthLoading.facebook}
                 githubLoading={oauthLoading.github}
               />
             </div>

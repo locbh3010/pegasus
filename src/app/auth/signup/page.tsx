@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/features/auth/components/auth-provider'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -20,6 +20,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { OAuthButtons } from '@/features/auth/components/oauth-buttons'
+import { validateEmail, validatePassword, validateUsername, debounce } from '@/lib/validation'
 import { Rocket, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
 
 interface SignUpFormData {
@@ -28,27 +29,59 @@ interface SignUpFormData {
   password: string
 }
 
+interface ValidationErrors {
+  username?: string | undefined
+  email?: string | undefined
+  password?: string | undefined
+}
+
 export default function SignUpPage() {
   const router = useRouter()
-  const { user, loading, signUp, signInWithOAuth } = useAuth()
+  const { user, loading, signUp, signInWithOAuth, oauthLoading } = useAuth()
   const [formData, setFormData] = useState<SignUpFormData>({
     username: '',
     email: '',
     password: '',
   })
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
-  const [oauthLoading, setOauthLoading] = useState<{
-    facebook: boolean
-    github: boolean
-    google: boolean
-  }>({
-    facebook: false,
-    github: false,
-    google: false,
-  })
+
+  // Debounced validation functions
+  const debouncedValidateEmail = useCallback(
+    debounce((email: string) => {
+      const result = validateEmail(email)
+      setValidationErrors((prev) => ({
+        ...prev,
+        email: result.isValid ? undefined : result.error,
+      }))
+    }, 300),
+    []
+  )
+
+  const debouncedValidateUsername = useCallback(
+    debounce((username: string) => {
+      const result = validateUsername(username)
+      setValidationErrors((prev) => ({
+        ...prev,
+        username: result.isValid ? undefined : result.error,
+      }))
+    }, 300),
+    []
+  )
+
+  const debouncedValidatePassword = useCallback(
+    debounce((password: string) => {
+      const result = validatePassword(password)
+      setValidationErrors((prev) => ({
+        ...prev,
+        password: result.isValid ? undefined : result.error,
+      }))
+    }, 300),
+    []
+  )
 
   // Check if user is already authenticated
   useEffect(() => {
@@ -63,35 +96,31 @@ export default function SignUpPage() {
       ...prev,
       [name]: value,
     }))
-    // Clear error when user starts typing
+
+    // Clear general errors when user starts typing
     if (error) {
       setError(null)
     }
     if (success) {
       setSuccess(null)
     }
-  }
 
-  const validateForm = (): string | null => {
-    if (!formData.username.trim()) {
-      return 'Username is required'
+    // Real-time validation
+    if (name === 'email') {
+      debouncedValidateEmail(value)
+    } else if (name === 'username') {
+      debouncedValidateUsername(value)
+    } else if (name === 'password') {
+      debouncedValidatePassword(value)
     }
-    if (formData.username.length < 3) {
-      return 'Username must be at least 3 characters long'
+
+    // Clear field-specific validation error when user starts typing
+    if (validationErrors[name as keyof ValidationErrors]) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }))
     }
-    if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      return 'Username can only contain letters, numbers, and underscores'
-    }
-    if (!formData.email.trim()) {
-      return 'Email is required'
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      return 'Please enter a valid email address'
-    }
-    if (formData.password.length < 8) {
-      return 'Password must be at least 8 characters long'
-    }
-    return null
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,9 +129,27 @@ export default function SignUpPage() {
     setError(null)
     setSuccess(null)
 
-    const validationError = validateForm()
-    if (validationError) {
-      setError(validationError)
+    // Validate form before submission
+    const usernameValidation = validateUsername(formData.username)
+    const emailValidation = validateEmail(formData.email)
+    const passwordValidation = validatePassword(formData.password)
+
+    const errors: ValidationErrors = {}
+
+    if (!usernameValidation.isValid) {
+      errors.username = usernameValidation.error
+    }
+
+    if (!emailValidation.isValid) {
+      errors.email = emailValidation.error
+    }
+
+    if (!passwordValidation.isValid) {
+      errors.password = passwordValidation.error
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors)
       setIsLoading(false)
       return
     }
@@ -128,8 +175,7 @@ export default function SignUpPage() {
     }
   }
 
-  const handleOAuthSignIn = async (provider: 'facebook' | 'github' | 'google') => {
-    setOauthLoading((prev) => ({ ...prev, [provider]: true }))
+  const handleOAuthSignIn = async (provider: 'github' | 'google') => {
     setError(null)
 
     try {
@@ -139,11 +185,10 @@ export default function SignUpPage() {
         setError(result.error)
       }
       // Note: On success, the user will be redirected to the callback page
+      // OAuth loading state is managed by the AuthProvider
     } catch (err) {
       setError(`Failed to sign up with ${provider}. Please try again.`)
       console.error(`${provider} OAuth error:`, err)
-    } finally {
-      setOauthLoading((prev) => ({ ...prev, [provider]: false }))
     }
   }
 
@@ -205,10 +250,24 @@ export default function SignUpPage() {
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
+                  autoComplete="new-username"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
+                  data-form-type="other"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  className={
+                    validationErrors.username ? 'border-destructive focus:border-destructive' : ''
+                  }
                 />
-                <p className="text-muted-foreground text-xs">
-                  Username must be at least 3 characters (letters, numbers, and underscores only)
-                </p>
+                {validationErrors.username ? (
+                  <p className="text-destructive mt-1 text-sm">{validationErrors.username}</p>
+                ) : (
+                  <p className="text-muted-foreground text-xs">
+                    Username must be at least 3 characters (letters, numbers, and underscores only)
+                  </p>
+                )}
               </div>
 
               {/* Email Field */}
@@ -219,13 +278,26 @@ export default function SignUpPage() {
                 <Input
                   id="email"
                   name="email"
-                  type="text"
+                  type="email"
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
+                  autoComplete="new-email"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
+                  data-form-type="other"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  className={
+                    validationErrors.email ? 'border-destructive focus:border-destructive' : ''
+                  }
                 />
+                {validationErrors.email && (
+                  <p className="text-destructive mt-1 text-sm">{validationErrors.email}</p>
+                )}
               </div>
 
               {/* Password Field */}
@@ -243,6 +315,16 @@ export default function SignUpPage() {
                     onChange={handleInputChange}
                     required
                     disabled={isLoading}
+                    autoComplete="new-password"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    data-form-type="other"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
+                    className={
+                      validationErrors.password ? 'border-destructive focus:border-destructive' : ''
+                    }
                   />
                   <Button
                     type="button"
@@ -255,9 +337,13 @@ export default function SignUpPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
-                <p className="text-muted-foreground text-xs">
-                  Password must be at least 8 characters long
-                </p>
+                {validationErrors.password ? (
+                  <p className="text-destructive mt-1 text-sm">{validationErrors.password}</p>
+                ) : (
+                  <p className="text-muted-foreground text-xs">
+                    Password must be at least 8 characters long
+                  </p>
+                )}
               </div>
 
               {/* Submit Button */}
@@ -286,11 +372,9 @@ export default function SignUpPage() {
 
               <OAuthButtons
                 onGoogleClick={() => handleOAuthSignIn('google')}
-                onFacebookClick={() => handleOAuthSignIn('facebook')}
                 onGitHubClick={() => handleOAuthSignIn('github')}
                 disabled={isLoading}
                 googleLoading={oauthLoading.google}
-                facebookLoading={oauthLoading.facebook}
                 githubLoading={oauthLoading.github}
               />
             </div>

@@ -1,12 +1,11 @@
 # OAuth Authentication Setup Guide
 
-This guide explains how to configure OAuth authentication with Google, Facebook, and GitHub providers in your Supabase project.
+This guide explains how to configure OAuth authentication with Google and GitHub providers in your Supabase project.
 
 ## Prerequisites
 
 - Supabase project with authentication enabled
 - Google Cloud Console account
-- Facebook Developer account
 - GitHub account with developer access
 
 ## 1. Supabase Configuration
@@ -64,44 +63,7 @@ Add the following redirect URLs in your Supabase Auth settings:
 3. Enter your Google **Client ID** and **Client Secret**
 4. Save configuration
 
-## 3. Facebook OAuth Setup
-
-### Step 1: Create Facebook App
-
-1. Go to [Facebook Developers](https://developers.facebook.com/)
-2. Click **Create App** > **Consumer** > **Next**
-3. Enter your app name and contact email
-4. Click **Create App**
-
-### Step 2: Configure Facebook Login
-
-1. In your Facebook app dashboard, click **Add Product**
-2. Find **Facebook Login** and click **Set Up**
-3. Choose **Web** platform
-4. Enter your site URL: `http://localhost:3000` (for development)
-
-### Step 3: Configure OAuth Redirect URIs
-
-1. Go to **Facebook Login** > **Settings**
-2. Add these Valid OAuth Redirect URIs:
-   ```
-   https://your-project-ref.supabase.co/auth/v1/callback
-   ```
-3. Save changes
-
-### Step 4: Get App Credentials
-
-1. Go to **Settings** > **Basic**
-2. Copy your **App ID** and **App Secret**
-
-### Step 5: Configure in Supabase
-
-1. In Supabase dashboard, go to **Authentication** > **Providers**
-2. Find **Facebook** and click **Enable**
-3. Enter your Facebook **App ID** and **App Secret**
-4. Save configuration
-
-## 4. GitHub OAuth Setup
+## 3. GitHub OAuth Setup
 
 ### Step 1: Create GitHub OAuth App
 
@@ -125,7 +87,7 @@ Add the following redirect URLs in your Supabase Auth settings:
 3. Enter your GitHub **Client ID** and **Client Secret**
 4. Save configuration
 
-## 5. Environment Variables
+## 4. Environment Variables
 
 Ensure your `.env.local` file contains:
 
@@ -135,13 +97,13 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 NEXT_PUBLIC_SUPABASE_SERVICE_KEY=your-supabase-service-key
 ```
 
-## 6. Testing OAuth Flow
+## 5. Testing OAuth Flow
 
 ### Development Testing
 
 1. Start your development server: `yarn dev`
 2. Navigate to `http://localhost:3000/auth/signin`
-3. Click on Google, Facebook, or GitHub login buttons
+3. Click on Google or GitHub login buttons
 4. Complete the OAuth flow
 5. Verify user is created in your database
 
@@ -152,7 +114,7 @@ NEXT_PUBLIC_SUPABASE_SERVICE_KEY=your-supabase-service-key
 3. Deploy your application
 4. Test OAuth flow in production environment
 
-## 7. Troubleshooting
+## 6. Troubleshooting
 
 ### Common Issues
 

@@ -14,18 +14,64 @@ function AuthCallbackContent() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Handle the OAuth callback with proper session management
+        console.log('Processing OAuth callback...')
+        console.log('Current URL:', window.location.href)
+
+        // First, validate that we have OAuth parameters in the URL
+        const hasOAuthParams =
+          window.location.hash.includes('access_token') || window.location.search.includes('code=')
+
+        if (!hasOAuthParams) {
+          console.log('No OAuth parameters found in URL, checking for existing session...')
+
+          // Check if there's an existing valid session
+          const { data, error } = await supabase.auth.getSession()
+
+          if (error || !data.session?.user) {
+            console.log('No valid session found, redirecting to sign-in')
+            setIsProcessing(false)
+            router.replace('/auth/signin?error=no_session')
+            return
+          }
+
+          // If we have a valid session, redirect to dashboard
+          const redirectTo = searchParams.get('redirect_to') || '/dashboard'
+          setIsProcessing(false)
+          router.replace(redirectTo)
+          return
+        }
+
+        // Use Supabase's built-in session handling which automatically processes OAuth callbacks
+        // This handles both hash fragments and query parameters from OAuth providers
         const { data, error } = await supabase.auth.getSession()
 
         if (error) {
-          console.error('Auth callback error:', error)
+          console.error('OAuth callback error:', error)
           setIsProcessing(false)
           router.replace('/auth/signin?error=oauth_error')
           return
         }
 
         if (data.session?.user) {
-          console.error('OAuth authentication successful:', data.session.user.id)
+          console.log('OAuth authentication successful:', data.session.user.id)
+
+          // Validate that the session is actually valid by checking expiry
+          if (data.session.expires_at) {
+            const expiryTime = new Date(data.session.expires_at).getTime()
+            const currentTime = Date.now()
+
+            if (currentTime >= expiryTime) {
+              console.log('Session expired, attempting refresh...')
+              const { error: refreshError } = await supabase.auth.refreshSession()
+
+              if (refreshError) {
+                console.error('Failed to refresh expired session:', refreshError)
+                setIsProcessing(false)
+                router.replace('/auth/signin?error=session_expired')
+                return
+              }
+            }
+          }
 
           // Small delay to ensure session is properly established
           await new Promise((resolve) => setTimeout(resolve, 500))
@@ -35,11 +81,51 @@ function AuthCallbackContent() {
 
           setIsProcessing(false)
           router.replace(redirectTo)
-        } else {
-          console.error('No session found in callback')
-          setIsProcessing(false)
-          router.replace('/auth/signin?error=no_session')
+          return
         }
+
+        // If no session found, wait a bit longer and try again
+        // Sometimes OAuth processing takes a moment
+        console.log('No session found, waiting and retrying...')
+        await new Promise((resolve) => setTimeout(resolve, 1500))
+
+        const { data: retryData, error: retryError } = await supabase.auth.getSession()
+
+        if (retryError) {
+          console.error('Retry session error:', retryError)
+          setIsProcessing(false)
+          router.replace('/auth/signin?error=session_error')
+          return
+        }
+
+        if (retryData.session?.user) {
+          console.log('OAuth authentication successful on retry:', retryData.session.user.id)
+
+          // Validate the retry session as well
+          if (retryData.session.expires_at) {
+            const expiryTime = new Date(retryData.session.expires_at).getTime()
+            const currentTime = Date.now()
+
+            if (currentTime >= expiryTime) {
+              console.log('Retry session expired, redirecting to sign-in')
+              setIsProcessing(false)
+              router.replace('/auth/signin?error=session_expired')
+              return
+            }
+          }
+
+          // Get redirect URL from search params or default to dashboard
+          const redirectTo = searchParams.get('redirect_to') || '/dashboard'
+
+          setIsProcessing(false)
+          router.replace(redirectTo)
+          return
+        }
+
+        // If we get here, no session was found after retry
+        console.error('No session found in callback after retry')
+        setIsProcessing(false)
+        router.replace('/auth/signin?error=no_session')
       } catch (error) {
         console.error('Unexpected error in auth callback:', error)
         setIsProcessing(false)
@@ -48,10 +134,10 @@ function AuthCallbackContent() {
     }
 
     // Add a small delay to ensure URL parameters are processed
-    const timer = setTimeout(handleAuthCallback, 100)
+    const timer = setTimeout(handleAuthCallback, 200)
 
     return () => clearTimeout(timer)
-  }, [router, supabase.auth, searchParams, setIsProcessing])
+  }, [router, supabase.auth, searchParams])
 
   if (!isProcessing) {
     return null // Prevent flash of content during redirect
