@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getSession } from 'next-auth/react'
+import { useAuth } from '@/features/auth/components/auth-provider'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,7 @@ interface SignUpFormData {
 
 export default function SignUpPage() {
   const router = useRouter()
+  const { user, loading, signUp } = useAuth()
   const [formData, setFormData] = useState<SignUpFormData>({
     name: '',
     email: '',
@@ -38,14 +39,10 @@ export default function SignUpPage() {
 
   // Check if user is already authenticated
   useEffect(() => {
-    const checkAuth = async () => {
-      const session = await getSession()
-      if (session) {
-        router.push('/dashboard')
-      }
+    if (!loading && user) {
+      router.push('/dashboard')
     }
-    checkAuth()
-  }, [router])
+  }, [user, loading, router])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -98,16 +95,18 @@ export default function SignUpPage() {
     }
 
     try {
-      // TODO: Implement actual registration API call
-      // For now, simulate a successful registration
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const result = await signUp(formData.email, formData.password)
 
-      setSuccess('Account created successfully! You can now sign in.')
+      if (result.error) {
+        setError(result.error)
+      } else {
+        setSuccess('Account created successfully! Please check your email to verify your account.')
 
-      // Redirect to sign in page after a short delay
-      setTimeout(() => {
-        router.push('/auth/signin')
-      }, 2000)
+        // Redirect to sign in page after a short delay
+        setTimeout(() => {
+          router.push('/auth/signin')
+        }, 2000)
+      }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
       console.error('Sign up error:', err)

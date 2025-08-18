@@ -1,27 +1,27 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/features/auth/components/auth-provider'
 import { useRouter } from 'next/navigation'
 
 export default function TasksPage() {
-  const { status } = useSession()
+  const { user, loading } = useAuth()
   const router = useRouter()
 
   // Redirect unauthenticated users to sign in
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (!loading && !user) {
       router.push('/auth/signin')
     }
-  }, [status, router])
+  }, [user, loading, router])
 
   // Show loading state while checking authentication
-  if (status === 'loading') {
+  if (loading) {
     return <div />
   }
 
   // Don't render if not authenticated
-  if (status === 'unauthenticated') {
+  if (!user) {
     return null
   }
 

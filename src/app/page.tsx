@@ -1,29 +1,35 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/features/auth/components/auth-provider'
 import { useRouter } from 'next/navigation'
+import LandingLayout from '@/features/layouts/components/LandingLayout'
+import LandingPage from '@/features/landing/pages/LandingPage'
 
 export default function HomePage() {
-  const { status } = useSession()
+  const { user, loading } = useAuth()
   const router = useRouter()
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (user) {
       router.push('/dashboard')
     }
-  }, [status, router])
+  }, [user, router])
 
   // Show loading state while checking authentication
-  if (status === 'loading') {
+  if (loading) {
     return <div />
   }
 
   // Don't render if user is authenticated
-  if (status === 'authenticated') {
+  if (user) {
     return null
   }
 
-  return <div />
+  return (
+    <LandingLayout>
+      <LandingPage />
+    </LandingLayout>
+  )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useAuth } from '../components/auth-provider'
 import { RegisterCredentials } from '../types'
 
 interface UseRegisterOptions {
@@ -10,15 +11,18 @@ interface UseRegisterOptions {
 
 export function useRegister(options?: UseRegisterOptions) {
   const [isLoading, setIsLoading] = useState(false)
+  const { signUp } = useAuth()
 
-  const register = async (_credentials: RegisterCredentials) => {
+  const register = async (credentials: RegisterCredentials) => {
     setIsLoading(true)
     try {
-      // TODO: Implement actual registration API call
-      // For now, we'll just simulate success
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const result = await signUp(credentials.email, credentials.password)
 
-      options?.onSuccess?.()
+      if (result.error) {
+        options?.onError?.(result.error)
+      } else {
+        options?.onSuccess?.()
+      }
     } catch (_error) {
       options?.onError?.('Registration failed')
     } finally {

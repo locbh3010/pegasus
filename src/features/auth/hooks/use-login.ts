@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { useAuth } from '../components/auth-provider'
 import { LoginCredentials } from '../types'
 
 interface UseLoginOptions {
@@ -11,18 +11,15 @@ interface UseLoginOptions {
 
 export function useLogin(options?: UseLoginOptions) {
   const [isLoading, setIsLoading] = useState(false)
+  const { signIn } = useAuth()
 
   const login = async (credentials: LoginCredentials) => {
     setIsLoading(true)
     try {
-      const result = await signIn('credentials', {
-        email: credentials.email,
-        password: credentials.password,
-        redirect: false,
-      })
+      const result = await signIn(credentials.email, credentials.password)
 
-      if (result?.error) {
-        options?.onError?.('Invalid email or password')
+      if (result.error) {
+        options?.onError?.(result.error)
       } else {
         options?.onSuccess?.()
       }

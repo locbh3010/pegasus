@@ -1,16 +1,16 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useAuth } from '../components/auth-provider'
 
 export function useAuthUser() {
-  const { data: session, status } = useSession()
+  const { user, loading } = useAuth()
 
   return {
-    user: session?.user || null,
-    isLoading: status === 'loading',
+    user,
+    isLoading: loading,
     isError: false,
     error: null,
-    isAuthenticated: !!session?.user,
-    refetch: () => {}, // NextAuth handles session refresh automatically
+    isAuthenticated: !!user,
+    refetch: () => {}, // Supabase handles session refresh automatically
   }
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { signIn, getSession } from 'next-auth/react'
+import { useAuth } from '@/features/auth/components/auth-provider'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -19,6 +19,7 @@ interface SignInFormData {
 
 export default function SignInPage() {
   const router = useRouter()
+  const { user, loading, signIn } = useAuth()
   const [formData, setFormData] = useState<SignInFormData>({
     email: '',
     password: '',
@@ -29,14 +30,10 @@ export default function SignInPage() {
 
   // Check if user is already authenticated
   useEffect(() => {
-    const checkAuth = async () => {
-      const session = await getSession()
-      if (session) {
-        router.push('/dashboard')
-      }
+    if (!loading && user) {
+      router.push('/dashboard')
     }
-    checkAuth()
-  }, [router])
+  }, [user, loading, router])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -56,15 +53,11 @@ export default function SignInPage() {
     setError(null)
 
     try {
-      const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
-      })
+      const result = await signIn(formData.email, formData.password)
 
-      if (result?.error) {
-        setError('Invalid email or password. Please try again.')
-      } else if (result?.ok) {
+      if (result.error) {
+        setError(result.error)
+      } else {
         router.push('/dashboard')
       }
     } catch (err) {
