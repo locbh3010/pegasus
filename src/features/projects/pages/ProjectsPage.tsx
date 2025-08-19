@@ -16,124 +16,147 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AlertCircle, Grid3X3, List, Plus, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useProjectsContext } from '../context'
 import type { ProjectsPageProps, Project } from '../types'
-import { PROJECT_PRIORITY, PROJECT_STATUS } from '../types'
-import { CreateProjectModal, EditProjectModal, ProjectCard } from '../components'
+import { ProjectPriority, ProjectStatus } from '../constants'
+import { CreateProjectModal, ProjectCard } from '../components'
+
+// Mock data for UI showcase
+const mockProjects: Project[] = [
+  {
+    id: '1',
+    name: 'E-commerce Platform',
+    description: 'Building a modern e-commerce platform with React and Node.js',
+    priority: ProjectPriority.HIGH,
+    status: ProjectStatus.ACTIVE,
+    start_date: '2024-01-15',
+    end_date: '2024-06-30',
+    created_by: 'user1',
+    created_at: '2024-01-10T10:00:00Z',
+    updated_at: '2024-01-20T15:30:00Z',
+    budget: 50000,
+    client_name: 'TechCorp Inc.',
+  },
+  {
+    id: '2',
+    name: 'Mobile App Development',
+    description: 'Cross-platform mobile app using React Native',
+    priority: ProjectPriority.MEDIUM,
+    status: ProjectStatus.PLANNING,
+    start_date: '2024-03-01',
+    end_date: '2024-08-15',
+    created_by: 'user1',
+    created_at: '2024-01-05T09:00:00Z',
+    updated_at: '2024-01-18T11:45:00Z',
+    budget: 35000,
+    client_name: 'StartupXYZ',
+  },
+  {
+    id: '3',
+    name: 'Data Analytics Dashboard',
+    description: 'Real-time analytics dashboard for business intelligence',
+    priority: ProjectPriority.URGENT,
+    status: ProjectStatus.ON_HOLD,
+    start_date: '2024-02-01',
+    end_date: '2024-05-30',
+    created_by: 'user1',
+    created_at: '2024-01-08T14:20:00Z',
+    updated_at: '2024-01-22T16:10:00Z',
+    budget: 75000,
+    client_name: 'DataCorp Ltd.',
+  },
+]
 
 export default function ProjectsPage({ className }: ProjectsPageProps) {
-  const {
-    projects,
-    loading,
-    error,
-    filters,
-    sortOptions,
-    pagination,
-    setFilters,
-    setSortOptions,
-    setPage,
-    clearError,
-    refreshProjects,
-  } = useProjectsContext()
-
-  // Local state
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [editingProject, setEditingProject] = useState<Project | null>(null)
+  // UI state
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [searchQuery, setSearchQuery] = useState(filters.search || '')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedStatuses, setSelectedStatuses] = useState<ProjectStatus[]>([])
+  const [selectedPriorities, setSelectedPriorities] = useState<ProjectPriority[]>([])
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [loading] = useState(false)
+  const [error] = useState<Error | null>(null)
 
-  // Handle search input change with debouncing
+  // Filter projects based on UI state
+  const filteredProjects = useMemo(() => {
+    return mockProjects.filter((project) => {
+      const matchesSearch =
+        !searchQuery ||
+        project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.description?.toLowerCase().includes(searchQuery.toLowerCase())
+
+      const matchesStatus =
+        selectedStatuses.length === 0 || selectedStatuses.includes(project.status)
+
+      const matchesPriority =
+        selectedPriorities.length === 0 || selectedPriorities.includes(project.priority)
+
+      return matchesSearch && matchesStatus && matchesPriority
+    })
+  }, [searchQuery, selectedStatuses, selectedPriorities])
+
+  // UI handlers
   const handleSearchChange = (value: string) => {
     setSearchQuery(value)
-    // Debounce search
-    const timeoutId = setTimeout(() => {
-      if (value.trim()) {
-        setFilters({ search: value.trim() })
-      } else {
-        setFilters({ search: undefined })
-      }
-    }, 300)
-    return () => clearTimeout(timeoutId)
   }
 
-  // Handle filter changes
-  const handleStatusFilter = (status: string) => {
-    const currentStatuses = filters.status || []
-    const newStatuses = currentStatuses.includes(status as any)
-      ? currentStatuses.filter((s) => s !== status)
-      : [...currentStatuses, status as any]
-
-    setFilters({ status: newStatuses.length > 0 ? newStatuses : undefined })
+  const handleStatusFilter = (status: ProjectStatus) => {
+    setSelectedStatuses((prev) =>
+      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
+    )
   }
 
-  const handlePriorityFilter = (priority: string) => {
-    const currentPriorities = filters.priority || []
-    const newPriorities = currentPriorities.includes(priority as any)
-      ? currentPriorities.filter((p) => p !== priority)
-      : [...currentPriorities, priority as any]
-
-    setFilters({ priority: newPriorities.length > 0 ? newPriorities : undefined })
+  const handlePriorityFilter = (priority: ProjectPriority) => {
+    setSelectedPriorities((prev) =>
+      prev.includes(priority) ? prev.filter((p) => p !== priority) : [...prev, priority]
+    )
   }
 
-  // Handle sort changes
-  const handleSortChange = (field: string) => {
-    const newDirection =
-      sortOptions.field === field && sortOptions.direction === 'asc' ? 'desc' : 'asc'
-    setSortOptions({ field: field as any, direction: newDirection })
-  }
-
-  // Use the handleSortChange function to avoid unused variable warning
-  // This can be connected to sort UI components when implemented
-  void handleSortChange
-
-  // Clear all filters
   const clearAllFilters = () => {
     setSearchQuery('')
-    setFilters({})
+    setSelectedStatuses([])
+    setSelectedPriorities([])
+  }
+
+  const openCreateModal = () => setIsCreateModalOpen(true)
+  const closeCreateModal = () => setIsCreateModalOpen(false)
+
+  const clearError = () => {
+    // No-op for UI showcase
   }
 
   // Check if any filters are active
   const hasActiveFilters = useMemo(() => {
-    return !!(
-      filters.search ||
-      (filters.status && filters.status.length > 0) ||
-      (filters.priority && filters.priority.length > 0)
-    )
-  }, [filters])
-
-  // Handle project creation success
-  const handleProjectCreated = () => {
-    setIsCreateModalOpen(false)
-    refreshProjects()
-  }
+    return !!(searchQuery || selectedStatuses.length > 0 || selectedPriorities.length > 0)
+  }, [searchQuery, selectedStatuses, selectedPriorities])
 
   // Status badge variant mapping
-  const getStatusVariant = (status: string) => {
+  const getStatusVariant = (status: ProjectStatus) => {
     switch (status) {
-      case 'active':
+      case ProjectStatus.ACTIVE:
         return 'primary'
-      case 'completed':
+      case ProjectStatus.COMPLETED:
         return 'success'
-      case 'on_hold':
+      case ProjectStatus.ON_HOLD:
         return 'warning'
-      case 'cancelled':
+      case ProjectStatus.CANCELLED:
         return 'destructive'
+      case ProjectStatus.PLANNING:
+        return 'secondary'
       default:
         return 'outline'
     }
   }
 
   // Priority badge variant mapping
-  const getPriorityVariant = (priority: string) => {
+  const getPriorityVariant = (priority: ProjectPriority) => {
     switch (priority) {
-      case 'urgent':
+      case ProjectPriority.URGENT:
         return 'destructive'
-      case 'high':
+      case ProjectPriority.HIGH:
         return 'warning'
-      case 'medium':
+      case ProjectPriority.MEDIUM:
         return 'primary'
-      case 'low':
+      case ProjectPriority.LOW:
         return 'secondary'
       default:
         return 'outline'
@@ -148,7 +171,7 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
           <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
           <p className="text-muted-foreground">Manage and track your projects</p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+        <Button onClick={openCreateModal} className="gap-2">
           <Plus className="h-4 w-4" />
           Create Project
         </Button>
@@ -159,7 +182,7 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
-            {error}
+            {error?.message || 'An error occurred'}
             <Button variant="outline" size="sm" onClick={clearError}>
               Dismiss
             </Button>
@@ -215,11 +238,11 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
             <div className="space-y-3">
               <Label>Status</Label>
               <div className="flex flex-wrap gap-2">
-                {Object.values(PROJECT_STATUS).map((status) => (
+                {(Object.values(ProjectStatus) as ProjectStatus[]).map((status) => (
                   <Badge
                     key={status}
                     variant={
-                      filters.status?.includes(status) ? getStatusVariant(status) : 'outline'
+                      selectedStatuses.includes(status) ? getStatusVariant(status) : 'outline'
                     }
                     className="cursor-pointer"
                     onClick={() => handleStatusFilter(status)}
@@ -234,11 +257,11 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
             <div className="space-y-3">
               <Label>Priority</Label>
               <div className="flex flex-wrap gap-2">
-                {Object.values(PROJECT_PRIORITY).map((priority) => (
+                {(Object.values(ProjectPriority) as ProjectPriority[]).map((priority) => (
                   <Badge
                     key={priority}
                     variant={
-                      filters.priority?.includes(priority)
+                      selectedPriorities.includes(priority)
                         ? getPriorityVariant(priority)
                         : 'outline'
                     }
@@ -256,7 +279,7 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
           {hasActiveFilters && (
             <div className="flex items-center justify-between border-t pt-2">
               <span className="text-muted-foreground text-sm">
-                {projects.length} project{projects.length !== 1 ? 's' : ''} found
+                {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''} found
               </span>
               <Button variant="outline" size="sm" onClick={clearAllFilters}>
                 Clear Filters
@@ -284,7 +307,7 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
             </Card>
           ))}
         </div>
-      ) : projects.length === 0 ? (
+      ) : filteredProjects.length === 0 ? (
         <Card variant="accent">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="space-y-4 text-center">
@@ -300,7 +323,7 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
                 </p>
               </div>
               {!hasActiveFilters && (
-                <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+                <Button onClick={openCreateModal} className="gap-2">
                   <Plus className="h-4 w-4" />
                   Create Your First Project
                 </Button>
@@ -312,15 +335,11 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
         <div
           className={viewMode === 'grid' ? 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}
         >
-          {projects.map((project) => (
+          {filteredProjects.map((project) => (
             <ProjectCard
               key={project.id}
               project={project}
               viewMode={viewMode}
-              onEdit={(project: Project) => {
-                setEditingProject(project)
-                setIsEditModalOpen(true)
-              }}
               onDelete={(_projectId: string) => {
                 // TODO: Implement delete functionality
               }}
@@ -332,62 +351,17 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
         </div>
       )}
 
-      {/* Pagination */}
-      {pagination.total > pagination.limit && (
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground text-sm">
-            Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
-            {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}{' '}
-            projects
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(pagination.page - 1)}
-              disabled={pagination.page === 1}
-            >
-              Previous
-            </Button>
-            <span className="text-sm">
-              Page {pagination.page} of {Math.ceil(pagination.total / pagination.limit)}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(pagination.page + 1)}
-              disabled={!pagination.hasMore}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Pagination would go here in a real app */}
 
       {/* Create Project Modal */}
       <CreateProjectModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={handleProjectCreated}
+        onClose={closeCreateModal}
+        onSuccess={() => {
+          // In a real app, this would refresh the data
+          closeCreateModal()
+        }}
       />
-
-      {/* Edit Project Modal */}
-      {editingProject && (
-        <EditProjectModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false)
-            setEditingProject(null)
-          }}
-          onSuccess={(_updatedProject) => {
-            // Refresh projects to show updated data
-            refreshProjects()
-            setIsEditModalOpen(false)
-            setEditingProject(null)
-          }}
-          project={editingProject}
-        />
-      )}
     </div>
   )
 }

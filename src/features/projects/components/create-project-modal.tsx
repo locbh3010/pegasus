@@ -5,7 +5,6 @@ import {
   SelectField,
   TextField,
   TextareaField,
-  UserSelectField,
   type SelectOption,
 } from '@/components/form'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -18,41 +17,45 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useAuth } from '@/features/auth'
+import dayjs from 'dayjs'
 import { Form, Formik } from 'formik'
-import { AlertCircle, CheckCircle, Plus } from 'lucide-react'
+import { AlertCircle, Plus } from 'lucide-react'
 import { useState } from 'react'
 import * as Yup from 'yup'
-import { useProjectsContext } from '../context'
-import type { CreateProjectFormData, CreateProjectModalProps } from '../types'
-import { PROJECT_PRIORITY, PROJECT_STATUS } from '../types'
+import { PROJECT_PRIORITY, PROJECT_STATUS, ProjectPriority, ProjectStatus } from '../constants'
+import { useCreateProject } from '../hooks/use-create-project'
+import type { CreateProjectData, CreateProjectModalProps } from '../types'
 
 // Options for select fields
-const priorityOptions: SelectOption[] = Object.values(PROJECT_PRIORITY).map((priority) => ({
-  value: priority,
-  label: priority.charAt(0).toUpperCase() + priority.slice(1),
-}))
+const priorityOptions: SelectOption[] = (Object.values(PROJECT_PRIORITY) as string[]).map(
+  (priority) => ({
+    value: priority,
+    label: priority.charAt(0).toUpperCase() + priority.slice(1),
+  })
+)
 
-const statusOptions: SelectOption[] = Object.values(PROJECT_STATUS).map((status) => ({
+const statusOptions: SelectOption[] = (Object.values(PROJECT_STATUS) as string[]).map((status) => ({
   value: status,
   label: status.replace('_', ' ').charAt(0).toUpperCase() + status.replace('_', ' ').slice(1),
 }))
 
-// Validation schema using Yup
+// Validation schema
 const validationSchema = Yup.object({
   name: Yup.string()
-    .min(3, 'Project name must be at least 3 characters')
+    .min(2, 'Project name must be at least 2 characters')
     .max(100, 'Project name must be less than 100 characters')
     .required('Project name is required'),
   description: Yup.string().max(500, 'Description must be less than 500 characters'),
   priority: Yup.string()
-    .oneOf(Object.values(PROJECT_PRIORITY), 'Please select a valid priority')
+    .oneOf(Object.values(ProjectPriority) as string[], 'Please select a valid priority')
     .required('Priority is required'),
   status: Yup.string()
-    .oneOf(Object.values(PROJECT_STATUS), 'Please select a valid status')
+    .oneOf(Object.values(ProjectStatus) as string[], 'Please select a valid status')
     .required('Status is required'),
   start_date: Yup.string(),
   end_date: Yup.string().test(
-    'end-date-after-start',
+    'is-after-start',
     'End date must be after start date',
     function (value) {
       const { start_date } = this.parent
@@ -60,7 +63,6 @@ const validationSchema = Yup.object({
       return new Date(value) > new Date(start_date)
     }
   ),
-  assigned_users: Yup.array().of(Yup.string()),
 })
 
 export function CreateProjectModal({
@@ -69,63 +71,13 @@ export function CreateProjectModal({
   onSuccess,
   className,
 }: CreateProjectModalProps) {
-  const { createProject } = useProjectsContext()
+  const { user } = useAuth()
+  const { mutate: createProject, isPending } = useCreateProject()
+
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-
-  const initialValues: CreateProjectFormData = {
-    name: '',
-    description: '',
-    priority: 'medium',
-    status: 'planning',
-    start_date: '',
-    end_date: '',
-    assigned_users: [],
-  }
-
-  const handleSubmit = async (
-    values: CreateProjectFormData,
-    {
-      setSubmitting,
-      resetForm,
-    }: { setSubmitting: (isSubmitting: boolean) => void; resetForm: () => void }
-  ) => {
-    setError(null)
-    setSuccess(null)
-
-    try {
-      const projectData: CreateProjectFormData = {
-        name: values.name,
-        description: values.description || undefined,
-        priority: values.priority,
-        status: values.status,
-        start_date: values.start_date || undefined,
-        end_date: values.end_date || undefined,
-        assigned_users: values.assigned_users || undefined,
-      }
-
-      const newProject = await createProject(projectData)
-      setSuccess('Project created successfully!')
-
-      // Reset form and close modal after a short delay
-      setTimeout(() => {
-        resetForm()
-        setSuccess(null)
-        onSuccess?.(newProject)
-        onClose()
-      }, 1500)
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Failed to create project. Please try again.'
-      setError(errorMessage)
-    } finally {
-      setSubmitting(false)
-    }
-  }
 
   const handleClose = () => {
     setError(null)
-    setSuccess(null)
     onClose()
   }
 
@@ -141,29 +93,39 @@ export function CreateProjectModal({
             Fill in the details below to create a new project. You can always edit these later.
           </DialogDescription>
         </DialogHeader>
-        <Formik
-          initialValues={initialValues}
+        <Formik<CreateProjectData>
+          initialValues={{
+            name: '',
+            description: '',
+            start_date: dayjs().toISOString(),
+            priority: ProjectPriority.MEDIUM,
+            status: ProjectStatus.PLANNING,
+            created_by: user?.id!,
+          }}
           validationSchema={validationSchema}
-          onSubmit={handleSubmit}
+          onSubmit={(values, { setSubmitting, resetForm }) => {
+            createProject(values, {
+              onSuccess: () => {
+                onClose()
+                onSuccess?.()
+                setSubmitting(false)
+                resetForm()
+              },
+              onError: (error) => {
+                setError(error instanceof Error ? error.message : 'Failed to create project')
+                setSubmitting(false)
+              },
+            })
+          }}
         >
           {({ isSubmitting }) => (
             <Form className="space-y-3">
-              {/* Error Alert */}
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-
-              {/* Success Alert */}
-              {success && (
-                <Alert className="border-green-200 bg-green-50 text-green-800">
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertDescription>{success}</AlertDescription>
-                </Alert>
-              )}
-
               {/* Project Name */}
               <TextField
                 name="name"
@@ -213,17 +175,6 @@ export function CreateProjectModal({
                 <DateField name="end_date" label="End Date" placeholder="Select end date" />
               </div>
 
-              {/* User Assignment */}
-              <UserSelectField
-                name="assigned_users"
-                label="Assign Users"
-                placeholder="Select users to assign to this project..."
-                multiple
-                searchable
-                clearable
-                helperText="You can assign multiple users to this project. Users can be added or removed later."
-              />
-
               {/* Form Actions */}
               <DialogFooter>
                 <Button
@@ -231,12 +182,12 @@ export function CreateProjectModal({
                   variant="ghost"
                   className="text-destructive"
                   onClick={handleClose}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isPending}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting} className="gap-2">
-                  {isSubmitting ? (
+                <Button type="submit" disabled={isSubmitting || isPending} className="gap-2">
+                  {isSubmitting || isPending ? (
                     <>
                       <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current" />
                       Creating...

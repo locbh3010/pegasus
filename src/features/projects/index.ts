@@ -1,6 +1,4 @@
-// Projects feature exports
+// Projects feature exports (UI-only)
 export * from './types'
 export * from './components'
-export * from './hooks'
-export * from './services'
-export * from './context'
+export * from './constants'

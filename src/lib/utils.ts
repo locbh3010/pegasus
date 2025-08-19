@@ -10,3 +10,10 @@ import { twMerge } from 'tailwind-merge'
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs))
 }
+
+export function getPagination(page: number, limit: number = 10) {
+  return {
+    offset: ((page || 1) - 1) * limit,
+    limit,
+  }
+}

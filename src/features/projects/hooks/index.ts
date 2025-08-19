@@ -1,5 +1,2 @@
-// Project hooks exports
-export { useProjectMembers } from './use-project-members'
-export type { UseProjectMembersReturn } from './use-project-members'
-export { useProjects } from './use-projects'
-export type { UseProjectsQueryReturn } from './use-projects'
+// Project hooks exports (UI-only)
+// No data-related hooks - this is now a pure UI showcase

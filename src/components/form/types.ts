@@ -111,3 +111,20 @@ export interface FormFieldState {
   dirty: boolean
   validationState: ValidationState
 }
+
+export interface DebounceInputProps {
+  id?: string
+  label?: string
+  placeholder?: string
+  required?: boolean
+  readonly?: boolean
+  disabled?: boolean
+  error?: string
+  helperText?: string
+  className?: string
+
+  debounce?: number
+  value?: string
+  onChange?: (value: string) => void
+  onDebounce?: (value: string) => void
+}

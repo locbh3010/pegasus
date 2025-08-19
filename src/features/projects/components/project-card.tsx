@@ -24,13 +24,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Calendar, Clock, MoreHorizontal, Edit, Trash2, Eye, AlertCircle } from 'lucide-react'
+import { Calendar, Clock, MoreHorizontal, Trash2, Eye, AlertCircle } from 'lucide-react'
 import type { ProjectCardProps } from '../types'
 
 export function ProjectCard({
   project,
   viewMode = 'grid',
-  onEdit,
   onDelete,
   onView,
   className,
@@ -80,10 +79,6 @@ export function ProjectCard({
   }
 
   // Handle actions
-  const handleEdit = () => {
-    setIsMenuOpen(false)
-    onEdit?.(project)
-  }
 
   const handleDelete = () => {
     setIsMenuOpen(false)
@@ -148,11 +143,6 @@ export function ProjectCard({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleEdit}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Project
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                     <Trash2 className="mr-2 h-4 w-4" />
                     Delete Project
@@ -169,7 +159,7 @@ export function ProjectCard({
   // Grid view
   return (
     <Card className={`transition-shadow hover:shadow-md ${className || ''}`} variant="accent">
-      <CardHeader>
+      <CardHeader className="py-2">
         <CardHeading>
           <CardTitle className="line-clamp-1" title={project.name}>
             {project.name}
@@ -191,10 +181,6 @@ export function ProjectCard({
               <DropdownMenuItem onClick={handleView}>
                 <Eye className="mr-2 h-4 w-4" />
                 View Project
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleEdit}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Project
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDelete} className="text-destructive">
