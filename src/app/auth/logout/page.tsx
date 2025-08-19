@@ -11,17 +11,13 @@ export default function LogoutPage() {
   useEffect(() => {
     const handleLogout = async () => {
       try {
-        console.error('🔥 Logout page: Processing logout...')
-
         if (user) {
           await signOut()
-          console.error('🔥 Logout page: User signed out successfully')
         }
 
         // Always redirect to sign-in after logout attempt
         router.replace('/auth/signin')
-      } catch (error) {
-        console.error('Logout page error:', error)
+      } catch (_error) {
         // Even if logout fails, redirect to sign-in
         router.replace('/auth/signin')
       }

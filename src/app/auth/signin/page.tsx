@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/features/auth/components/auth-provider'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Formik, Form, Field, ErrorMessage } from 'formik'
+import * as Yup from 'yup'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,7 +22,6 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { OAuthButtons } from '@/features/auth/components/oauth-buttons'
-import { validateEmail } from '@/lib/validation'
 import { Rocket, Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 interface SignInFormData {
@@ -28,20 +29,24 @@ interface SignInFormData {
   password: string
 }
 
-interface ValidationErrors {
-  email?: string | undefined
-  password?: string | undefined
+interface FormikFieldProps {
+  field: {
+    name: string
+    value: string
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    onBlur: (e: React.FocusEvent<HTMLInputElement>) => void
+  }
 }
+
+// Validation schema using Yup
+const validationSchema = Yup.object({
+  email: Yup.string().email('Please enter a valid email address').required('Email is required'),
+  password: Yup.string().min(1, 'Password is required').required('Password is required'),
+})
 
 export default function SignInPage() {
   const router = useRouter()
   const { user, loading, signIn, signInWithOAuth } = useAuth()
-  const [formData, setFormData] = useState<SignInFormData>({
-    email: '',
-    password: '',
-  })
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -52,75 +57,19 @@ export default function SignInPage() {
     }
   }, [user, loading, router])
 
-  // Debounced validation function
-  const debouncedValidateEmail = useCallback((email: string) => {
-    const timeoutId = setTimeout(() => {
-      const result = validateEmail(email)
-      setValidationErrors((prev) => ({
-        ...prev,
-        email: result.isValid ? undefined : result.error,
-      }))
-    }, 300)
-    return () => clearTimeout(timeoutId)
-  }, [])
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-
-    // Clear general error when user starts typing
-    if (error) {
-      setError(null)
-    }
-
-    // Real-time validation for email
-    if (name === 'email') {
-      debouncedValidateEmail(value)
-    }
-
-    // Clear field-specific validation error when user starts typing
-    if (validationErrors[name as keyof ValidationErrors]) {
-      setValidationErrors((prev) => ({
-        ...prev,
-        [name]: undefined,
-      }))
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+  const handleSubmit = async (
+    values: SignInFormData,
+    { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
+  ) => {
     setError(null)
 
-    // Validate form before submission
-    const emailValidation = validateEmail(formData.email)
-    const errors: ValidationErrors = {}
-
-    if (!emailValidation.isValid) {
-      errors.email = emailValidation.error
-    }
-
-    if (!formData.password.trim()) {
-      errors.password = 'Password is required'
-    }
-
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors)
-      setIsLoading(false)
-      return
-    }
-
     try {
-      await signIn(formData.email, formData.password)
+      await signIn(values.email, values.password)
       router.push('/dashboard')
-    } catch (err) {
+    } catch (_err) {
       setError('An unexpected error occurred. Please try again.')
-      console.error('Sign in error:', err)
     } finally {
-      setIsLoading(false)
+      setSubmitting(false)
     }
   }
 
@@ -130,25 +79,33 @@ export default function SignInPage() {
     try {
       await signInWithOAuth(provider)
       // Note: On success, the user will be redirected to the callback page
-      // OAuth loading state is managed by the AuthProvider
-    } catch (err) {
+    } catch (_err) {
       setError(`Failed to sign in with ${provider}. Please try again.`)
-      console.error(`${provider} OAuth error:`, err)
     }
   }
 
-  const isFormValid = formData.email.trim() !== '' && formData.password.trim() !== ''
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="bg-background flex min-h-screen items-center justify-center">
+        <div className="space-y-4 text-center">
+          <div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-lg space-y-6">
+      <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center">
-          <div className="mb-2 flex justify-center">
-            <Rocket className="text-primary h-12 w-12" />
+          <div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+            <Rocket className="text-primary h-6 w-6" />
           </div>
-          <h1 className="text-foreground text-3xl font-bold">Welcome back</h1>
-          <p className="text-muted-foreground mt-2">Sign in to your Pegasus account</p>
+          <h1 className="text-foreground text-2xl font-bold">Welcome back</h1>
+          <p className="text-muted-foreground">Sign in to your account to continue</p>
         </div>
 
         {/* Sign In Form */}
@@ -161,117 +118,138 @@ export default function SignInPage() {
             <CardToolbar>{/* Optional toolbar items */}</CardToolbar>
           </CardHeader>
           <CardContent className="pt-6 pb-6">
-            <form onSubmit={handleSubmit} className="space-y-4" data-form-type="other">
-              {/* Error Alert */}
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+            <Formik
+              initialValues={{ email: '', password: '' }}
+              validationSchema={validationSchema}
+              onSubmit={handleSubmit}
+            >
+              {({ isSubmitting, errors, touched }) => (
+                <Form className="space-y-4" data-form-type="other">
+                  {/* Error Alert */}
+                  {error && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
 
-              {/* Email Field */}
-              <div className="space-y-2">
-                <Label htmlFor="email">
-                  Email <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  disabled={isLoading}
-                  autoComplete="new-email"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck="false"
-                  data-form-type="other"
-                  data-lpignore="true"
-                  data-1p-ignore="true"
-                  className={
-                    validationErrors.email ? 'border-destructive focus:border-destructive' : ''
-                  }
-                />
-                {validationErrors.email && (
-                  <p className="text-destructive mt-1 text-sm">{validationErrors.email}</p>
-                )}
-              </div>
+                  {/* Email Field */}
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-foreground text-sm font-medium">
+                      Email Address <span className="text-destructive">*</span>
+                    </Label>
+                    <Field name="email">
+                      {({ field }: FormikFieldProps) => (
+                        <Input
+                          {...field}
+                          id="email"
+                          type="email"
+                          placeholder="Enter your email"
+                          autoComplete="email"
+                          autoCapitalize="off"
+                          spellCheck="false"
+                          data-form-type="other"
+                          data-lpignore="true"
+                          data-1p-ignore="true"
+                          className={
+                            errors.email && touched.email
+                              ? 'border-destructive focus:border-destructive'
+                              : ''
+                          }
+                          onChange={(e) => {
+                            field.onChange(e)
+                            if (error) {
+                              setError(null)
+                            }
+                          }}
+                        />
+                      )}
+                    </Field>
+                    <ErrorMessage
+                      name="email"
+                      component="div"
+                      className="text-destructive text-sm"
+                    />
+                  </div>
 
-              {/* Password Field */}
-              <div className="space-y-2">
-                <Label htmlFor="password">
-                  Password <span className="text-destructive">*</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    disabled={isLoading}
-                    autoComplete="new-password"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck="false"
-                    data-form-type="other"
-                    data-lpignore="true"
-                    data-1p-ignore="true"
-                    className={
-                      validationErrors.password ? 'border-destructive focus:border-destructive' : ''
-                    }
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                    disabled={isLoading}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {/* Password Field */}
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-foreground text-sm font-medium">
+                      Password <span className="text-destructive">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Field name="password">
+                        {({ field }: FormikFieldProps) => (
+                          <Input
+                            {...field}
+                            id="password"
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Enter your password"
+                            autoComplete="current-password"
+                            autoCapitalize="off"
+                            spellCheck="false"
+                            data-form-type="other"
+                            data-lpignore="true"
+                            data-1p-ignore="true"
+                            className={
+                              errors.password && touched.password
+                                ? 'border-destructive focus:border-destructive pr-10'
+                                : 'pr-10'
+                            }
+                            onChange={(e) => {
+                              field.onChange(e)
+                              if (error) {
+                                setError(null)
+                              }
+                            }}
+                          />
+                        )}
+                      </Field>
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                    <ErrorMessage
+                      name="password"
+                      component="div"
+                      className="text-destructive text-sm"
+                    />
+                  </div>
+
+                  {/* Submit Button */}
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? 'Signing in...' : 'Sign In'}
                   </Button>
-                </div>
-                {validationErrors.password && (
-                  <p className="text-destructive mt-1 text-sm">{validationErrors.password}</p>
-                )}
-              </div>
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-full"
-                disabled={!isFormValid || isLoading}
-              >
-                {isLoading ? 'Signing in...' : 'Sign In'}
-              </Button>
-            </form>
+                  {/* Divider */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator className="w-full" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background text-muted-foreground px-2">
+                        Or continue with
+                      </span>
+                    </div>
+                  </div>
 
-            {/* OAuth Buttons */}
-            <div className="mt-6 space-y-4">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <Separator className="w-full" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background text-muted-foreground px-2">
-                    Or continue with social
-                  </span>
-                </div>
-              </div>
-
-              <OAuthButtons
-                onGoogleClick={() => handleOAuthSignIn('google')}
-                onGitHubClick={() => handleOAuthSignIn('github')}
-                disabled={isLoading}
-              />
-            </div>
+                  {/* OAuth Buttons */}
+                  <OAuthButtons
+                    onGoogleClick={() => handleOAuthSignIn('google')}
+                    onGitHubClick={() => handleOAuthSignIn('github')}
+                    disabled={isSubmitting}
+                  />
+                </Form>
+              )}
+            </Formik>
           </CardContent>
           <CardFooter className="justify-center">
             <div className="text-center text-sm">

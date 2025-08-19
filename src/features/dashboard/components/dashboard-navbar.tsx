@@ -27,11 +27,8 @@ export function DashboardNavbar({ className }: DashboardNavbarProps) {
     // Option 1: Direct logout (current implementation)
     try {
       setIsLoggingOut(true)
-      console.error('🔥 Dashboard: Starting logout...')
-
       // Call signOut from AuthProvider
       await signOut()
-      console.error('🔥 Dashboard: Logout successful, redirecting...')
 
       // Always redirect to sign-in page regardless of result
       // This ensures user doesn't get stuck in dashboard

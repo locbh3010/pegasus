@@ -20,10 +20,7 @@ export function useLogout(options: UseLogoutOptions = {}) {
   const logout = async () => {
     setIsLoading(true)
     try {
-      console.error('🔥 useLogout: Starting logout process...')
-
       await signOut()
-      console.error('🔥 useLogout: Logout successful')
 
       // Call success callback if provided
       if (onSuccess) {

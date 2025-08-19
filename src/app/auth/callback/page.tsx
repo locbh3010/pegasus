@@ -14,7 +14,6 @@ export default function AuthCallbackPage() {
         const { data, error } = await supabase.auth.getSession()
 
         if (error) {
-          console.error('Auth callback error:', error)
           router.replace('/auth/signin?error=callback_error')
           return
         }
@@ -26,8 +25,7 @@ export default function AuthCallbackPage() {
           // No session - redirect to signin
           router.replace('/auth/signin')
         }
-      } catch (error) {
-        console.error('Callback processing error:', error)
+      } catch (_error) {
         router.replace('/auth/signin?error=callback_error')
       }
     }
@@ -36,11 +34,11 @@ export default function AuthCallbackPage() {
   }, [router])
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
-        <h2 className="text-xl font-semibold text-gray-900">Processing authentication...</h2>
-        <p className="mt-2 text-gray-600">Please wait while we complete your sign-in.</p>
+    <div className="bg-background flex min-h-screen items-center justify-center">
+      <div className="space-y-4 text-center">
+        <div className="border-primary border-t-primary/20 mx-auto h-8 w-8 animate-spin rounded-full border-4" />
+        <h2 className="text-foreground text-xl font-semibold">Processing authentication...</h2>
+        <p className="text-muted-foreground">Please wait while we complete your sign-in.</p>
       </div>
     </div>
   )
