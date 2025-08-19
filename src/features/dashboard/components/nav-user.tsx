@@ -29,7 +29,8 @@ export function NavUser({
     avatar: string
   }
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile, state } = useSidebar()
+  const isCollapsed = state === 'collapsed'
   const { signOut } = useAuth()
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -56,27 +57,60 @@ export function NavUser({
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">
-                  {user.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')
-                    .toUpperCase()
-                    .slice(0, 2)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+            {isCollapsed ? (
+              <div className="flex w-full justify-center">
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                  tooltip={`${user.name} (${user.email})`}
+                  style={{
+                    padding: '0',
+                    paddingLeft: '0',
+                    paddingRight: '0',
+                    paddingTop: '0',
+                    paddingBottom: '0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback className="rounded-lg">
+                      {user.name
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                        .toUpperCase()
+                        .slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                </SidebarMenuButton>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
-            </SidebarMenuButton>
+            ) : (
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                tooltip={`${user.name} (${user.email})`}
+              >
+                <Avatar className="h-8 w-8 rounded-lg">
+                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarFallback className="rounded-lg">
+                    {user.name
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">{user.name}</span>
+                  <span className="truncate text-xs">{user.email}</span>
+                </div>
+                <ChevronsUpDown className="ml-auto size-4" />
+              </SidebarMenuButton>
+            )}
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
@@ -109,7 +143,7 @@ export function NavUser({
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
+            <DropdownMenuItem variant="destructive" onClick={handleSignOut} disabled={isLoggingOut}>
               <LogOut />
               {isLoggingOut ? 'Signing out...' : 'Log out'}
             </DropdownMenuItem>

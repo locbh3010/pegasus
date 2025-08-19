@@ -3,8 +3,8 @@
 import { useEffect } from 'react'
 import { useAuth } from '@/features/auth/components/auth-provider'
 import { useRouter } from 'next/navigation'
-import { AppSidebar } from '@/components/app-sidebar'
-import { SiteHeader } from '@/components/site-header'
+import { AppSidebar } from '@/features/dashboard/components/app-sidebar'
+import { SiteHeader } from '@/features/dashboard/components/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 
 interface DashboardLayoutProps {

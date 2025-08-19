@@ -12,7 +12,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { CommandPaletteTrigger } from '@/features/dashboard/components/command-palette-trigger'
+import { CommandPaletteTrigger } from './command-palette-trigger'
 
 export function SiteHeader() {
   const pathname = usePathname()

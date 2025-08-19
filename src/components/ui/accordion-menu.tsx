@@ -209,7 +209,7 @@ function AccordionMenuSeparator({ className, ...props }: AccordionMenuSeparatorP
 }
 
 const itemVariants = cva(
-  'relative cursor-pointer select-none flex w-full text-start items-center text-foreground rounded-lg gap-2 px-2 py-1.5 text-sm outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground disabled:opacity-50 disabled:bg-transparent focus-visible:bg-accent focus-visible:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:opacity-60 [&_svg:not([class*=size-])]:size-4 [&_svg]:shrink-0 [&_a]:flex [&>a]:w-full [&>a]:items-center [&>a]:gap-2',
+  'relative cursor-pointer select-none flex w-full text-start items-center text-foreground rounded-lg gap-2 px-2 py-1.5 text-sm outline-hidden transition-colors hover:bg-background/50 hover:text-foreground data-[selected=true]:bg-background data-[selected=true]:text-foreground disabled:opacity-50 disabled:bg-transparent focus-visible:bg-background focus-visible:text-foreground [&_svg]:pointer-events-none [&_svg]:opacity-60 [&_svg:not([class*=size-])]:size-4 [&_svg]:shrink-0 [&_a]:flex [&>a]:w-full [&>a]:items-center [&>a]:gap-2',
   {
     variants: {
       variant: {
@@ -302,7 +302,7 @@ function AccordionMenuSubTrigger({
       <AccordionPrimitive.Trigger
         data-slot="accordion-menu-sub-trigger"
         className={cn(
-          'text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground relative flex w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-start text-sm outline-hidden transition-colors select-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4 [&_svg:not([role=img]):not([class*=text-])]:opacity-60',
+          'text-foreground hover:bg-background hover:text-foreground focus-visible:bg-background focus-visible:text-foreground relative flex w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-start text-sm outline-hidden transition-colors select-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4 [&_svg:not([role=img]):not([class*=text-])]:opacity-60',
           classNames?.subTrigger,
           className
         )}
