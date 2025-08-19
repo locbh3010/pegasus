@@ -1,3 +1,3 @@
 // Project components exports
-// Components will be added here as they are created
-export {}
+export { ProjectCard } from './project-card'
+export { CreateProjectModal } from './create-project-modal'
