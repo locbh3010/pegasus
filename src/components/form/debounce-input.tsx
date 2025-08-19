@@ -48,7 +48,7 @@ export default function DebounceInput({
             setInputValue(e.target.value)
             onChange?.(e.target.value)
           }}
-          className={cn(className, 'pl-10')}
+          className={cn(className)}
         />
       </div>
       {error && (

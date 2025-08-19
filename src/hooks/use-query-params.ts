@@ -4,12 +4,14 @@ import { useCallback, useMemo } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import qs from 'qs'
 
-export interface QueryParamsReturn<T extends Record<string, unknown>> {
+export interface QueryParamsReturn<T extends Record<string, any>> {
   params: T
   has: (key: keyof T) => boolean
   setParams: (updates: Partial<T>) => void
   deleteParam: (key: keyof T) => void
   getParam: (key: keyof T) => T[keyof T] | undefined
+  resetParams: () => void
+  hasFilters: () => boolean
 }
 
 /**
@@ -39,7 +41,7 @@ export interface QueryParamsReturn<T extends Record<string, unknown>> {
  * deleteParam('search')
  * ```
  */
-export function useQueryParams<T extends Record<string, unknown>>(
+export function useQueryParams<T extends Record<string | number | symbol, unknown>>(
   defaultParams: T
 ): QueryParamsReturn<T> {
   const searchParams = useSearchParams()
@@ -193,11 +195,35 @@ export function useQueryParams<T extends Record<string, unknown>>(
     [searchParams, pathname, router]
   )
 
+  // Reset all parameters to their default values
+  const resetParams = useCallback((): void => {
+    // Navigate to URL with no query parameters (all defaults will be used)
+    router.push(pathname, { scroll: false })
+  }, [pathname, router])
+
+  // Check if current params differ from default values
+  const hasFilters = useCallback((): boolean => {
+    return Object.keys(defaultParams).some((key) => {
+      const currentValue = params[key as keyof T]
+      const defaultValue = defaultParams[key as keyof T]
+
+      // Deep comparison for arrays
+      if (Array.isArray(currentValue) && Array.isArray(defaultValue)) {
+        return JSON.stringify(currentValue) !== JSON.stringify(defaultValue)
+      }
+
+      // Simple comparison for other types
+      return currentValue !== defaultValue
+    })
+  }, [params, defaultParams])
+
   return {
     params,
     has,
     setParams,
     deleteParam,
     getParam,
+    resetParams,
+    hasFilters,
   }
 }

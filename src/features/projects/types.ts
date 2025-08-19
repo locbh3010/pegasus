@@ -1,4 +1,5 @@
 // Project-related type definitions (UI-only)
+import { Pagination } from '@/types/common'
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/supabase'
 import { ProjectPriority } from './constants/project-priority'
 import { ProjectStatus } from './constants/project-status'
@@ -24,8 +25,8 @@ export type UpdateProjectData = Omit<TablesUpdate<'projects'>, 'priority' | 'sta
 export interface ProjectCardProps {
   project: Project
   viewMode?: 'grid' | 'list'
-  onDelete?: (projectId: string) => void
-  onView?: (projectId: string) => void
+  onDelete?: (projectId: Project['id']) => void
+  onView?: (projectId: Project['id']) => void
   className?: string
 }
 
@@ -41,7 +42,10 @@ export interface ProjectsPageProps {
   className?: string
 }
 
-export interface ProjectsQueryParams {
-  page?: number
-  limit?: number
+export interface ProjectsQueryParams extends Pagination {
+  viewMode?: 'grid' | 'list'
+  search?: string
+  status?: ProjectStatus[]
+  priority?: ProjectPriority[]
+  [key: string | number | symbol]: unknown
 }

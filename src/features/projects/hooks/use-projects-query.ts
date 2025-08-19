@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { projectServices } from '../services/project.services'
+import { ProjectsQueryParams } from '../types'
 
-export function useProjectsQuery() {
+export function useProjectsQuery(params: ProjectsQueryParams) {
   return useQuery({
-    queryKey: ['projects'],
-    queryFn: () => projectServices.getProjects({ page: 1, limit: 10 }),
+    queryKey: ['projects', params],
+    queryFn: () => projectServices.getProjects(params),
   })
 }
