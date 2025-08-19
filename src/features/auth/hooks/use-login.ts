@@ -16,15 +16,11 @@ export function useLogin(options?: UseLoginOptions) {
   const login = async (credentials: LoginCredentials) => {
     setIsLoading(true)
     try {
-      const result = await signIn(credentials.email, credentials.password)
-
-      if (result.error) {
-        options?.onError?.(result.error)
-      } else {
-        options?.onSuccess?.()
-      }
-    } catch (_error) {
-      options?.onError?.('An unexpected error occurred')
+      await signIn(credentials.email, credentials.password)
+      options?.onSuccess?.()
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
+      options?.onError?.(errorMessage)
     } finally {
       setIsLoading(false)
     }

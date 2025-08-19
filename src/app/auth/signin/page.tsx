@@ -20,7 +20,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { OAuthButtons } from '@/features/auth/components/oauth-buttons'
-import { validateEmail, debounce } from '@/lib/validation'
+import { validateEmail } from '@/lib/validation'
 import { Rocket, Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 interface SignInFormData {
@@ -35,7 +35,7 @@ interface ValidationErrors {
 
 export default function SignInPage() {
   const router = useRouter()
-  const { user, loading, signIn, signInWithOAuth, oauthLoading } = useAuth()
+  const { user, loading, signIn, signInWithOAuth } = useAuth()
   const [formData, setFormData] = useState<SignInFormData>({
     email: '',
     password: '',
@@ -53,16 +53,16 @@ export default function SignInPage() {
   }, [user, loading, router])
 
   // Debounced validation function
-  const debouncedValidateEmail = useCallback(
-    debounce((email: string) => {
+  const debouncedValidateEmail = useCallback((email: string) => {
+    const timeoutId = setTimeout(() => {
       const result = validateEmail(email)
       setValidationErrors((prev) => ({
         ...prev,
         email: result.isValid ? undefined : result.error,
       }))
-    }, 300),
-    []
-  )
+    }, 300)
+    return () => clearTimeout(timeoutId)
+  }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -114,13 +114,8 @@ export default function SignInPage() {
     }
 
     try {
-      const result = await signIn(formData.email, formData.password)
-
-      if (result.error) {
-        setError(result.error)
-      } else {
-        router.push('/dashboard')
-      }
+      await signIn(formData.email, formData.password)
+      router.push('/dashboard')
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
       console.error('Sign in error:', err)
@@ -133,11 +128,7 @@ export default function SignInPage() {
     setError(null)
 
     try {
-      const result = await signInWithOAuth(provider)
-
-      if (result.error) {
-        setError(result.error)
-      }
+      await signInWithOAuth(provider)
       // Note: On success, the user will be redirected to the callback page
       // OAuth loading state is managed by the AuthProvider
     } catch (err) {
@@ -279,8 +270,6 @@ export default function SignInPage() {
                 onGoogleClick={() => handleOAuthSignIn('google')}
                 onGitHubClick={() => handleOAuthSignIn('github')}
                 disabled={isLoading}
-                googleLoading={oauthLoading.google}
-                githubLoading={oauthLoading.github}
               />
             </div>
           </CardContent>

@@ -1,27 +1,49 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useAuth } from '../components/auth-provider'
-import { useRouter } from 'next/navigation'
 
 interface UseLogoutOptions {
+  redirectTo?: string
   onSuccess?: () => void
-  onError?: (error: string) => void
+  onError?: (error: Error) => void
 }
 
-export function useLogout(options?: UseLogoutOptions) {
+export function useLogout(options: UseLogoutOptions = {}) {
   const [isLoading, setIsLoading] = useState(false)
   const { signOut } = useAuth()
   const router = useRouter()
 
+  const { redirectTo = '/auth/signin', onSuccess, onError } = options
+
   const logout = async () => {
     setIsLoading(true)
     try {
+      console.error('🔥 useLogout: Starting logout process...')
+
       await signOut()
-      router.push('/')
-      options?.onSuccess?.()
-    } catch (_error) {
-      options?.onError?.('Failed to logout')
+      console.error('🔥 useLogout: Logout successful')
+
+      // Call success callback if provided
+      if (onSuccess) {
+        onSuccess()
+      }
+
+      // Redirect after successful logout
+      router.push(redirectTo)
+    } catch (error) {
+      console.error('useLogout error:', error)
+
+      const logoutError = error instanceof Error ? error : new Error('Logout failed')
+
+      // Call error callback if provided
+      if (onError) {
+        onError(logoutError)
+      }
+
+      // Still redirect to sign-in even if logout fails
+      router.push(redirectTo)
     } finally {
       setIsLoading(false)
     }

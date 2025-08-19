@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LogOut, Settings, CreditCard, ChevronDown } from 'lucide-react'
-import { useAuth } from '@/features/auth/components/auth-provider'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useAuth } from '@/features/auth/components/auth-provider'
 
 interface DashboardNavbarProps {
   className?: string
@@ -24,15 +24,29 @@ export function DashboardNavbar({ className }: DashboardNavbarProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleSignOut = async () => {
+    // Option 1: Direct logout (current implementation)
     try {
       setIsLoggingOut(true)
+      console.error('🔥 Dashboard: Starting logout...')
+
+      // Call signOut from AuthProvider
       await signOut()
+      console.error('🔥 Dashboard: Logout successful, redirecting...')
+
+      // Always redirect to sign-in page regardless of result
+      // This ensures user doesn't get stuck in dashboard
       router.push('/auth/signin')
     } catch (error) {
-      console.error('Sign out error:', error)
+      console.error('Dashboard sign out unexpected error:', error)
+
+      // Even if there's an error, still redirect to sign-in
+      router.push('/auth/signin')
     } finally {
       setIsLoggingOut(false)
     }
+
+    // Option 2: Use logout page (uncomment to use)
+    // router.push('/auth/logout')
   }
 
   const handleSettings = () => {
@@ -72,9 +86,9 @@ export function DashboardNavbar({ className }: DashboardNavbarProps) {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
-                <span className="text-primary-foreground text-sm font-bold">TM</span>
+                <span className="text-primary-foreground text-sm font-bold">P</span>
               </div>
-              <span className="text-lg font-semibold">Task Manager</span>
+              <span className="text-lg font-semibold">Pegasus</span>
             </div>
           </div>
 

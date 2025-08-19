@@ -20,7 +20,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { OAuthButtons } from '@/features/auth/components/oauth-buttons'
-import { validateEmail, validatePassword, validateUsername, debounce } from '@/lib/validation'
+import { validateEmail, validatePassword, validateUsername } from '@/lib/validation'
 import { Rocket, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
 
 interface SignUpFormData {
@@ -37,7 +37,7 @@ interface ValidationErrors {
 
 export default function SignUpPage() {
   const router = useRouter()
-  const { user, loading, signUp, signInWithOAuth, oauthLoading } = useAuth()
+  const { user, loading, signUp, signInWithOAuth } = useAuth()
   const [formData, setFormData] = useState<SignUpFormData>({
     username: '',
     email: '',
@@ -50,38 +50,38 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   // Debounced validation functions
-  const debouncedValidateEmail = useCallback(
-    debounce((email: string) => {
+  const debouncedValidateEmail = useCallback((email: string) => {
+    const timeoutId = setTimeout(() => {
       const result = validateEmail(email)
       setValidationErrors((prev) => ({
         ...prev,
         email: result.isValid ? undefined : result.error,
       }))
-    }, 300),
-    []
-  )
+    }, 300)
+    return () => clearTimeout(timeoutId)
+  }, [])
 
-  const debouncedValidateUsername = useCallback(
-    debounce((username: string) => {
+  const debouncedValidateUsername = useCallback((username: string) => {
+    const timeoutId = setTimeout(() => {
       const result = validateUsername(username)
       setValidationErrors((prev) => ({
         ...prev,
         username: result.isValid ? undefined : result.error,
       }))
-    }, 300),
-    []
-  )
+    }, 300)
+    return () => clearTimeout(timeoutId)
+  }, [])
 
-  const debouncedValidatePassword = useCallback(
-    debounce((password: string) => {
+  const debouncedValidatePassword = useCallback((password: string) => {
+    const timeoutId = setTimeout(() => {
       const result = validatePassword(password)
       setValidationErrors((prev) => ({
         ...prev,
         password: result.isValid ? undefined : result.error,
       }))
-    }, 300),
-    []
-  )
+    }, 300)
+    return () => clearTimeout(timeoutId)
+  }, [])
 
   // Check if user is already authenticated
   useEffect(() => {
@@ -155,18 +155,13 @@ export default function SignUpPage() {
     }
 
     try {
-      const result = await signUp(formData.email, formData.password, formData.username)
+      await signUp(formData.email, formData.password)
+      setSuccess('Account created successfully! Please check your email to verify your account.')
 
-      if (result.error) {
-        setError(result.error)
-      } else {
-        setSuccess('Account created successfully! Please check your email to verify your account.')
-
-        // Redirect to sign in page after a short delay
-        setTimeout(() => {
-          router.push('/auth/signin')
-        }, 2000)
-      }
+      // Redirect to sign in page after a short delay
+      setTimeout(() => {
+        router.push('/auth/signin')
+      }, 2000)
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
       console.error('Sign up error:', err)
@@ -179,13 +174,8 @@ export default function SignUpPage() {
     setError(null)
 
     try {
-      const result = await signInWithOAuth(provider)
-
-      if (result.error) {
-        setError(result.error)
-      }
+      await signInWithOAuth(provider)
       // Note: On success, the user will be redirected to the callback page
-      // OAuth loading state is managed by the AuthProvider
     } catch (err) {
       setError(`Failed to sign up with ${provider}. Please try again.`)
       console.error(`${provider} OAuth error:`, err)
@@ -225,14 +215,6 @@ export default function SignUpPage() {
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-              {/* Success Alert */}
-              {success && (
-                <Alert>
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertDescription>{success}</AlertDescription>
                 </Alert>
               )}
 
@@ -374,8 +356,6 @@ export default function SignUpPage() {
                 onGoogleClick={() => handleOAuthSignIn('google')}
                 onGitHubClick={() => handleOAuthSignIn('github')}
                 disabled={isLoading}
-                googleLoading={oauthLoading.google}
-                githubLoading={oauthLoading.github}
               />
             </div>
           </CardContent>
