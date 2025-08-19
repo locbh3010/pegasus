@@ -11,12 +11,11 @@ import {
   CardHeader,
   CardHeading,
   CardTitle,
-  CardToolbar,
 } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { useQueryParams } from '@/hooks/use-query-params'
 import { useDisclosure } from '@mantine/hooks'
-import { AlertCircle, Grid3X3, List, Plus } from 'lucide-react'
+import { AlertCircle, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { CreateProjectModal, ProjectCard } from '../components'
 import { ProjectPriority, ProjectStatus } from '../constants'
@@ -27,7 +26,6 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
   const { params, setParams, resetParams, hasFilters } = useQueryParams<ProjectsQueryParams>({
     page: 1,
     limit: 10,
-    viewMode: 'grid',
   })
   console.log('🚀 ~ ProjectsPage ~ params:', params)
 
@@ -67,24 +65,6 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
             <CardTitle className="text-lg">Search & Filters</CardTitle>
             <CardDescription>Find and filter your projects</CardDescription>
           </CardHeading>
-          <CardToolbar>
-            <div className="flex items-center gap-2">
-              <Button
-                variant={params?.viewMode === 'grid' ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setParams({ viewMode: 'grid' })}
-              >
-                <Grid3X3 className="size-4" />
-              </Button>
-              <Button
-                variant={params?.viewMode === 'list' ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setParams({ viewMode: 'list' })}
-              >
-                <List className="size-4" />
-              </Button>
-            </div>
-          </CardToolbar>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Search Input */}
@@ -190,16 +170,11 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
           </CardContent>
         </Card>
       ) : (
-        <div
-          className={
-            params?.viewMode === 'grid' ? 'grid gap-6 sm:grid-cols-2 lg:grid-cols-4' : 'space-y-4'
-          }
-        >
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {data?.data?.map((project) => (
             <ProjectCard
               key={project.id}
               project={project}
-              viewMode={params?.viewMode || 'grid'}
               onDelete={(_projectId: string) => {
                 // TODO: Implement delete functionality
               }}

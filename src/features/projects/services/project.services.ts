@@ -1,18 +1,7 @@
 import { supabaseService } from '@/lib/supabase/service'
 import { getPagination } from '@/lib/utils'
-import { CreateProjectData, ProjectsQueryParams, Project } from '../types'
-import { ProjectPriority } from '../constants/project-priority'
-import { ProjectStatus } from '../constants/project-status'
-import type { Tables } from '@/types/supabase'
-
-// Transform raw database project to typed Project
-function transformProject(rawProject: Tables<'projects'>): Project {
-  return {
-    ...rawProject,
-    priority: rawProject.priority as ProjectPriority,
-    status: rawProject.status as ProjectStatus,
-  }
-}
+import { CreateProjectData, ProjectsQueryParams } from '../types'
+import { projectTransformers } from '../project.transformers'
 
 export const projectServices = {
   getProjects: async (params: ProjectsQueryParams) => {
@@ -26,7 +15,7 @@ export const projectServices = {
 
     return {
       ...result,
-      data: result.data?.map(transformProject) || [],
+      data: result.data ? projectTransformers.fromDatabase(result.data) : [],
     }
   },
 
@@ -39,7 +28,7 @@ export const projectServices = {
 
     return {
       ...result,
-      data: result.data ? transformProject(result.data) : null,
+      data: result.data ? projectTransformers.fromDatabase([result.data])[0] : null,
     }
   },
 

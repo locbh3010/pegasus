@@ -1,5 +1,5 @@
 import { MemberRole } from '@/features/members/member.types'
-import { memberServices } from '@/features/members/services/member.servies'
+import { memberServices } from '@/features/members/services/member.services'
 import { useMutation } from '@tanstack/react-query'
 import { projectServices } from '../services/project.services'
 import { CreateProjectData } from '../types'
@@ -8,11 +8,9 @@ export function useCreateProject() {
   return useMutation({
     mutationFn: async (project: CreateProjectData) => {
       try {
-        const { data, error } = await projectServices.insert(project)
+        const { data } = await projectServices.insert(project)
 
-        if (error) throw new Error(error.message)
-
-        if (!data.id) throw new Error('Failed to create project')
+        if (!data?.id) throw new Error('Failed to create project')
 
         const { error: memberError } = await memberServices.insert({
           project_id: data.id,

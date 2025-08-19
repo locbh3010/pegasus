@@ -29,10 +29,10 @@ import type { ProjectCardProps } from '../types'
 
 export function ProjectCard({
   project,
-  viewMode = 'grid',
   onDelete,
   onView,
   className,
+  viewMode = 'grid',
 }: ProjectCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 

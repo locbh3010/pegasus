@@ -43,7 +43,6 @@ export interface ProjectsPageProps {
 }
 
 export interface ProjectsQueryParams extends Pagination {
-  viewMode?: 'grid' | 'list'
   search?: string
   status?: ProjectStatus[]
   priority?: ProjectPriority[]
