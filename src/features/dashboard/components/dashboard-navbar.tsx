@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { LogOut, Settings, CreditCard, ChevronDown } from 'lucide-react'
+import { LogOut, Settings, CreditCard, ChevronDown, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,12 +13,19 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/features/auth/components/auth-provider'
+import { CommandPaletteTrigger } from './command-palette-trigger'
 
 interface DashboardNavbarProps {
   className?: string
+  onSidebarToggle?: () => void
+  showSidebarToggle?: boolean
 }
 
-export function DashboardNavbar({ className }: DashboardNavbarProps) {
+export function DashboardNavbar({
+  className,
+  onSidebarToggle,
+  showSidebarToggle = false,
+}: DashboardNavbarProps) {
   const { user, signOut } = useAuth()
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -79,14 +86,25 @@ export function DashboardNavbar({ className }: DashboardNavbarProps) {
     >
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Left side - Logo */}
+          {/* Left side - Sidebar toggle + Logo */}
           <div className="flex items-center space-x-4">
+            {showSidebarToggle && (
+              <Button variant="ghost" size="sm" onClick={onSidebarToggle} className="h-9 w-9 p-0">
+                <Menu className="h-4 w-4" />
+                <span className="sr-only">Toggle sidebar</span>
+              </Button>
+            )}
             <div className="flex items-center space-x-2">
               <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
                 <span className="text-primary-foreground text-sm font-bold">P</span>
               </div>
               <span className="text-lg font-semibold">Pegasus</span>
             </div>
+          </div>
+
+          {/* Center - Command Palette */}
+          <div className="mx-4 hidden max-w-md flex-1 justify-center md:flex">
+            <CommandPaletteTrigger />
           </div>
 
           {/* Right side - User dropdown */}
