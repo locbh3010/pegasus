@@ -105,7 +105,7 @@ export type ValidationState = 'default' | 'error' | 'success' | 'warning'
 
 // Common form field states
 export interface FormFieldState {
-  value: any
+  value: unknown
   error?: string
   touched: boolean
   dirty: boolean

@@ -10,7 +10,9 @@ export function useCreateProject() {
       try {
         const { data } = await projectServices.insert(project)
 
-        if (!data?.id) throw new Error('Failed to create project')
+        if (!data?.id) {
+          throw new Error('Failed to create project')
+        }
 
         const { error: memberError } = await memberServices.insert({
           project_id: data.id,

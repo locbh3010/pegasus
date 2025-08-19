@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { type LucideIcon, ChevronRight } from 'lucide-react'
@@ -43,10 +43,15 @@ export function NavMain({
   const isCollapsed = state === 'collapsed'
 
   // Check if any child route is active to auto-expand parent
-  const isAnyChildActive = (parentItem: (typeof items)[0]) => {
-    if (!parentItem.items) return false
-    return parentItem.items.some((child) => pathname === child.url)
-  }
+  const isAnyChildActive = useCallback(
+    (parentItem: (typeof items)[0]) => {
+      if (!parentItem.items) {
+        return false
+      }
+      return parentItem.items.some((child) => pathname === child.url)
+    },
+    [pathname]
+  )
 
   // Auto-expand Projects if we're on a project child route (only when sidebar is expanded and user hasn't manually collapsed)
   useEffect(() => {
@@ -70,6 +75,7 @@ export function NavMain({
     isCollapsed,
     userManuallyCollapsed,
     resetManualCollapse,
+    isAnyChildActive,
   ])
 
   return (

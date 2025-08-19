@@ -19,7 +19,7 @@ export type TransformConfig<TInput, TOutput> = {
         ? never // If types are exactly the same, no transformer needed
         : FieldTransformer<TInput, K, TOutput[K]> // Types are related but different, provide transformer
       : FieldTransformer<TInput, K, TOutput[K]> // Types are different, provide transformer
-    : FieldTransformer<TInput, any, TOutput[K]> // For fields not in TInput
+    : FieldTransformer<TInput, never, TOutput[K]> // For fields not in TInput
 }
 
 /**
@@ -38,16 +38,16 @@ export type TransformConfig<TInput, TOutput> = {
  * })
  * ```
  */
-export function transformObject<TInput, TOutput extends Record<string, any>>(
+export function transformObject<TInput, TOutput>(
   input: TInput,
   config: TransformConfig<TInput, TOutput>
 ): TOutput {
-  const result = { ...input } as any
+  const result = { ...input } as Record<string, unknown>
 
   // Apply field transformations
   Object.entries(config).forEach(([key, transformer]) => {
     if (transformer && typeof transformer === 'function') {
-      result[key] = transformer((input as any)[key])
+      result[key] = transformer((input as Record<string, unknown>)[key])
     }
   })
 
@@ -71,7 +71,7 @@ export function transformObject<TInput, TOutput extends Record<string, any>>(
  * const projects = rawProjects.map(projectTransformer)
  * ```
  */
-export function createTransformer<TInput, TOutput extends Record<string, any>>(
+export function createTransformer<TInput, TOutput>(
   config: TransformConfig<TInput, TOutput>
 ): Transformer<TInput, TOutput> {
   return (input: TInput) => transformObject(input, config)
@@ -84,7 +84,7 @@ export function createTransformer<TInput, TOutput extends Record<string, any>>(
  * @param transformer - Transformer function or config
  * @returns Array of transformed objects
  */
-export function transformArray<TInput, TOutput extends Record<string, any>>(
+export function transformArray<TInput, TOutput>(
   items: TInput[],
   transformer: Transformer<TInput, TOutput> | TransformConfig<TInput, TOutput>
 ): TOutput[] {
@@ -110,7 +110,7 @@ export function transformArray<TInput, TOutput extends Record<string, any>>(
 export function createEnumTransformer<T extends Record<string, string>>(
   enumObject: T,
   fallback: T[keyof T]
-): FieldTransformer<any, any, T[keyof T]> {
+): (value: string) => T[keyof T] {
   const validValues = Object.values(enumObject)
 
   return (value: string): T[keyof T] => {
@@ -131,7 +131,9 @@ export const dateTransformers = {
    * Transform string to Date object
    */
   toDate: (value: string | null): Date | null => {
-    if (!value) return null
+    if (!value) {
+      return null
+    }
     const date = new Date(value)
     return isNaN(date.getTime()) ? null : date
   },
@@ -147,7 +149,9 @@ export const dateTransformers = {
    * Transform string to formatted date string
    */
   toDateString: (value: string | null): string | null => {
-    if (!value) return null
+    if (!value) {
+      return null
+    }
     const date = new Date(value)
     return isNaN(date.getTime()) ? null : date.toLocaleDateString()
   },
@@ -163,8 +167,12 @@ export const numberTransformers = {
   toNumber:
     (fallback: number = 0) =>
     (value: string | number | null): number => {
-      if (typeof value === 'number') return value
-      if (!value) return fallback
+      if (typeof value === 'number') {
+        return value
+      }
+      if (!value) {
+        return fallback
+      }
       const num = Number(value)
       return isNaN(num) ? fallback : num
     },
@@ -173,7 +181,9 @@ export const numberTransformers = {
    * Transform to currency format
    */
   toCurrency: (value: number | null): string => {
-    if (value === null || value === undefined) return '$0.00'
+    if (value === null || value === undefined) {
+      return '$0.00'
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -191,7 +201,9 @@ export const arrayTransformers = {
   fromString:
     (separator: string = ',') =>
     (value: string | null): string[] => {
-      if (!value) return []
+      if (!value) {
+        return []
+      }
       return value
         .split(separator)
         .map((item) => item.trim())
@@ -211,7 +223,9 @@ export const arrayTransformers = {
    * Ensure value is array
    */
   ensureArray: <T>(value: T | T[] | null): T[] => {
-    if (value === null || value === undefined) return []
+    if (value === null || value === undefined) {
+      return []
+    }
     return Array.isArray(value) ? value : [value]
   },
 }

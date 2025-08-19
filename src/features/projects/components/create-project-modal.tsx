@@ -59,7 +59,9 @@ const validationSchema = Yup.object({
     'End date must be after start date',
     function (value) {
       const { start_date } = this.parent
-      if (!value || !start_date) return true
+      if (!value || !start_date) {
+        return true
+      }
       return new Date(value) > new Date(start_date)
     }
   ),
@@ -100,7 +102,7 @@ export function CreateProjectModal({
             start_date: dayjs().toISOString(),
             priority: ProjectPriority.MEDIUM,
             status: ProjectStatus.PLANNING,
-            created_by: user?.id!,
+            created_by: user?.id || '',
           }}
           validationSchema={validationSchema}
           onSubmit={(values, { setSubmitting, resetForm }) => {

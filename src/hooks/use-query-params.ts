@@ -4,7 +4,7 @@ import { useCallback, useMemo } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import qs from 'qs'
 
-export interface QueryParamsReturn<T extends Record<string, any>> {
+export interface QueryParamsReturn<T extends Record<string, unknown>> {
   params: T
   has: (key: keyof T) => boolean
   setParams: (updates: Partial<T>) => void

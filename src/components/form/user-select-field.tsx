@@ -338,7 +338,9 @@ export function StandaloneUserSelectField({
   const { userOptions, isLoading } = useUsers(standaloneUsersOptions)
 
   const filteredOptions = React.useMemo(() => {
-    if (!searchQuery) return userOptions
+    if (!searchQuery) {
+      return userOptions
+    }
     return userOptions.filter(
       (option) =>
         option.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -350,7 +352,9 @@ export function StandaloneUserSelectField({
   const selectedOptions = userOptions.filter((option) => selectedValues.includes(option.value))
 
   const handleSelect = (optionValue: string) => {
-    if (!onChange) return
+    if (!onChange) {
+      return
+    }
 
     if (multiple) {
       const newValues = selectedValues.includes(optionValue)
@@ -367,7 +371,9 @@ export function StandaloneUserSelectField({
   }
 
   const handleRemove = (optionValue: string) => {
-    if (!onChange) return
+    if (!onChange) {
+      return
+    }
 
     if (multiple) {
       const newValues = selectedValues.filter((v) => v !== optionValue)
@@ -378,7 +384,9 @@ export function StandaloneUserSelectField({
   }
 
   const handleClear = () => {
-    if (!onChange) return
+    if (!onChange) {
+      return
+    }
     onChange(multiple ? [] : '')
   }
 

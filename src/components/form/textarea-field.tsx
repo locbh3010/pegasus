@@ -54,7 +54,9 @@ interface CharacterCounterProps {
 }
 
 function CharacterCounter({ current, max, className }: CharacterCounterProps) {
-  if (!max) return null
+  if (!max) {
+    return null
+  }
 
   const isNearLimit = current > max * 0.8
   const isOverLimit = current > max

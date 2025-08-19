@@ -66,7 +66,7 @@ export const queryKeys = {
   projects: {
     all: ['projects'] as const,
     lists: () => ['projects', 'list'] as const,
-    list: (filters?: Record<string, any>) => ['projects', 'list', filters] as const,
+    list: (filters?: Record<string, unknown>) => ['projects', 'list', filters] as const,
     byUser: (userId: string) => ['projects', 'user', userId] as const,
     byId: (id: string) => ['projects', 'id', id] as const,
     members: {

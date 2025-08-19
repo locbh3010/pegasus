@@ -146,19 +146,19 @@ export function QueryParamsExample() {
             onClick={() => handleAddTag('frontend')}
             className="rounded bg-green-500 px-3 py-1 text-sm text-white"
           >
-            Add "frontend"
+            Add &quot;frontend&quot;
           </button>
           <button
             onClick={() => handleAddTag('backend')}
             className="rounded bg-green-500 px-3 py-1 text-sm text-white"
           >
-            Add "backend"
+            Add &quot;backend&quot;
           </button>
           <button
             onClick={() => handleAddTag('urgent')}
             className="rounded bg-green-500 px-3 py-1 text-sm text-white"
           >
-            Add "urgent"
+            Add &quot;urgent&quot;
           </button>
         </div>
       </div>

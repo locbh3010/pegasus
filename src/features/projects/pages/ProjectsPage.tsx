@@ -25,9 +25,8 @@ import type { ProjectsPageProps, ProjectsQueryParams } from '../types'
 export default function ProjectsPage({ className }: ProjectsPageProps) {
   const { params, setParams, resetParams, hasFilters } = useQueryParams<ProjectsQueryParams>({
     page: 1,
-    limit: 10,
+    limit: 12,
   })
-  console.log('🚀 ~ ProjectsPage ~ params:', params)
 
   const { data, isPending, isError, error } = useProjectsQuery(params)
 
@@ -130,7 +129,7 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
       {/* Projects Grid/List */}
       {isPending ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 6 }).map((_, i) => (
+          {Array.from({ length: 8 }).map((_, i) => (
             <Card key={i} className="animate-pulse py-2" variant="accent">
               <CardHeader>
                 <div className="bg-muted h-4 w-3/4 rounded" />

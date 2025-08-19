@@ -88,7 +88,7 @@ const navigationItems: NavItem[] = [
   },
 ]
 
-export function DashboardSidebar({ isCollapsed, onToggle, className }: SidebarProps) {
+export function DashboardSidebar({ isCollapsed, onToggle: _onToggle, className }: SidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [openItems, setOpenItems] = useState<string[]>(['Projects', 'Analytics'])

@@ -55,7 +55,9 @@ export const transformProjectForDisplay = createTransformer<Project, ProjectDisp
   formattedEndDate: (project: Project) => dateTransformers.toDateString(project.end_date),
 
   durationDays: (project: Project) => {
-    if (!project.start_date || !project.end_date) return null
+    if (!project.start_date || !project.end_date) {
+      return null
+    }
     const start = new Date(project.start_date)
     const end = new Date(project.end_date)
     const diffTime = Math.abs(end.getTime() - start.getTime())
@@ -63,7 +65,9 @@ export const transformProjectForDisplay = createTransformer<Project, ProjectDisp
   },
 
   isOverdue: (project: Project) => {
-    if (!project.end_date || project.status === ProjectStatus.COMPLETED) return false
+    if (!project.end_date || project.status === ProjectStatus.COMPLETED) {
+      return false
+    }
     return new Date(project.end_date) < new Date()
   },
 

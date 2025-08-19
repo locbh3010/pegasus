@@ -38,7 +38,9 @@ export function ProjectCard({
 
   // Format dates
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return null
+    if (!dateString) {
+      return null
+    }
     try {
       return dayjs(dateString).fromNow()
     } catch {

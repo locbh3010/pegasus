@@ -1,6 +1,5 @@
 'use client'
 
-import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Label } from '@/components/ui/label'
@@ -9,6 +8,7 @@ import { cn } from '@/lib/utils'
 import dayjs from 'dayjs'
 import { Field, FieldProps } from 'formik'
 import { CalendarIcon, X } from 'lucide-react'
+import * as React from 'react'
 import type { DateFieldProps } from './types'
 
 // Form field wrapper component
@@ -34,7 +34,7 @@ function FormFieldWrapper({
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
-        <Label htmlFor={htmlFor} className="text-foreground text-sm font-medium">
+        <Label htmlFor={htmlFor} className="text-foreground mb-2 block text-sm font-medium">
           {label}
           {required && <span className="text-destructive ml-1">*</span>}
         </Label>
@@ -133,8 +133,7 @@ export function DateField({
                     className={cn(
                       'w-full justify-start text-left font-normal',
                       !selectedDate && 'text-muted-foreground',
-                      hasError &&
-                        'border-destructive focus:border-destructive focus-visible:ring-destructive'
+                      hasError && 'border-destructive focus:border-destructive'
                     )}
                     disabled={disabled}
                     aria-invalid={hasError ? 'true' : 'false'}
@@ -169,9 +168,15 @@ export function DateField({
                   selected={selectedDate}
                   onSelect={handleDateSelect}
                   disabled={(date) => {
-                    if (disabled) return true
-                    if (parsedMinDate && date < parsedMinDate) return true
-                    if (parsedMaxDate && date > parsedMaxDate) return true
+                    if (disabled) {
+                      return true
+                    }
+                    if (parsedMinDate && date < parsedMinDate) {
+                      return true
+                    }
+                    if (parsedMaxDate && date > parsedMaxDate) {
+                      return true
+                    }
                     return false
                   }}
                   autoFocus
@@ -244,9 +249,7 @@ export function StandaloneDateField({
               placeholder={!selectedDate}
               className={cn(
                 'w-full justify-start text-left font-normal',
-                !selectedDate && 'text-muted-foreground',
-                error &&
-                  'border-destructive focus:border-destructive focus-visible:ring-destructive'
+                !selectedDate && 'text-muted-foreground'
               )}
               disabled={disabled}
               aria-invalid={error ? 'true' : 'false'}
@@ -279,9 +282,15 @@ export function StandaloneDateField({
             selected={selectedDate}
             onSelect={handleDateSelect}
             disabled={(date) => {
-              if (disabled) return true
-              if (parsedMinDate && date < parsedMinDate) return true
-              if (parsedMaxDate && date > parsedMaxDate) return true
+              if (disabled) {
+                return true
+              }
+              if (parsedMinDate && date < parsedMinDate) {
+                return true
+              }
+              if (parsedMaxDate && date > parsedMaxDate) {
+                return true
+              }
               return false
             }}
             autoFocus
