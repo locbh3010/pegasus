@@ -177,10 +177,11 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
   const groupedCommands = commands.reduce(
     (acc, command) => {
-      if (!acc[command.category]) {
-        acc[command.category] = []
+      const category = command.category
+      if (!acc[category]) {
+        acc[category] = []
       }
-      acc[command.category]!.push(command)
+      acc[category].push(command)
       return acc
     },
     {} as Record<string, CommandItem[]>

@@ -61,25 +61,17 @@ export function useQueryParams<T extends Record<string | number | symbol, unknow
       types: types || {},
     })
 
-    console.log('🚀 ~ useQueryParams ~ currentParams:', currentParams)
-
     // Start with defaults, then merge all URL params
     const mergedParams = { ...defaultParams } as T
 
     // Merge all current params from URL (not just those in defaults)
     Object.keys(currentParams).forEach((key) => {
       const currentValue = currentParams[key]
-      console.log(`🔍 Processing key: ${key}, value:`, currentValue, 'type:', typeof currentValue)
 
       if (currentValue !== undefined && currentValue !== null && currentValue !== '') {
-        console.log(`✅ Merging ${key}:`, currentValue)
         mergedParams[key as keyof T] = currentValue as T[keyof T]
-      } else {
-        console.log(`⚠️ Skipping ${key} - empty/null/undefined`)
       }
     })
-
-    console.log('🚀 ~ useQueryParams ~ mergedParams:', mergedParams)
 
     return mergedParams
   }, [searchParams, defaultParams, types])
