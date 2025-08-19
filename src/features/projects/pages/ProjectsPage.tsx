@@ -23,10 +23,21 @@ import { useProjectsQuery } from '../hooks/use-projects-query'
 import type { ProjectsPageProps, ProjectsQueryParams } from '../types'
 
 export default function ProjectsPage({ className }: ProjectsPageProps) {
-  const { params, setParams, resetParams, hasFilters } = useQueryParams<ProjectsQueryParams>({
-    page: 1,
-    limit: 12,
-  })
+  const { params, setParams, resetParams, hasFilters } = useQueryParams<ProjectsQueryParams>(
+    {
+      page: 1,
+      limit: 12,
+    },
+    {
+      page: 'number',
+      limit: 'number',
+      search: 'string',
+      status: 'string[]',
+      priority: 'string[]',
+      start_date: 'string',
+      end_date: 'string',
+    }
+  )
 
   const { data, isPending, isError, error } = useProjectsQuery(params)
 

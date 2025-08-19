@@ -5,6 +5,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
+import { PopoverPortal } from '@radix-ui/react-popover'
 import dayjs from 'dayjs'
 import { Field, FieldProps } from 'formik'
 import { CalendarIcon, X } from 'lucide-react'
@@ -162,26 +163,28 @@ export function DateField({
                   )}
                 </div>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={handleDateSelect}
-                  disabled={(date) => {
-                    if (disabled) {
-                      return true
-                    }
-                    if (parsedMinDate && date < parsedMinDate) {
-                      return true
-                    }
-                    if (parsedMaxDate && date > parsedMaxDate) {
-                      return true
-                    }
-                    return false
-                  }}
-                  autoFocus
-                />
-              </PopoverContent>
+              <PopoverPortal container={document.body}>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={handleDateSelect}
+                    disabled={(date) => {
+                      if (disabled) {
+                        return true
+                      }
+                      if (parsedMinDate && date < parsedMinDate) {
+                        return true
+                      }
+                      if (parsedMaxDate && date > parsedMaxDate) {
+                        return true
+                      }
+                      return false
+                    }}
+                    autoFocus
+                  />
+                </PopoverContent>
+              </PopoverPortal>
             </Popover>
           </FormFieldWrapper>
         )
@@ -240,15 +243,15 @@ export function StandaloneDateField({
       htmlFor={fieldId}
     >
       <Popover>
-        <PopoverTrigger asChild>
-          <div className="relative w-full">
+        <PopoverTrigger asChild className="!mb-0">
+          <div className="relative !mb-0 w-full">
             <Button
               type="button"
               variant="outline"
               mode="input"
               placeholder={!selectedDate}
               className={cn(
-                'w-full justify-start text-left font-normal',
+                'w-full justify-start text-left font-normal !ring-0 !ring-offset-0',
                 !selectedDate && 'text-muted-foreground'
               )}
               disabled={disabled}
@@ -276,26 +279,28 @@ export function StandaloneDateField({
             )}
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateSelect}
-            disabled={(date) => {
-              if (disabled) {
-                return true
-              }
-              if (parsedMinDate && date < parsedMinDate) {
-                return true
-              }
-              if (parsedMaxDate && date > parsedMaxDate) {
-                return true
-              }
-              return false
-            }}
-            autoFocus
-          />
-        </PopoverContent>
+        <PopoverPortal container={document.body}>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDateSelect}
+              disabled={(date) => {
+                if (disabled) {
+                  return true
+                }
+                if (parsedMinDate && date < parsedMinDate) {
+                  return true
+                }
+                if (parsedMaxDate && date > parsedMaxDate) {
+                  return true
+                }
+                return false
+              }}
+              autoFocus
+            />
+          </PopoverContent>
+        </PopoverPortal>
       </Popover>
     </FormFieldWrapper>
   )

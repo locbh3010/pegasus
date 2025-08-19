@@ -1,8 +1,8 @@
 'use client'
 
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import queryString from 'query-string'
 import { useCallback, useMemo } from 'react'
-import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import qs from 'qs'
 
 export interface QueryParamsReturn<T extends Record<string, unknown>> {
   params: T
@@ -15,7 +15,7 @@ export interface QueryParamsReturn<T extends Record<string, unknown>> {
 }
 
 /**
- * Type-safe URL query parameter management hook using Next.js useSearchParams and qs library
+ * Type-safe URL query parameter management hook using Next.js useSearchParams and query-string library
  *
  * @param defaultParams - Object containing default values for query parameters
  * @returns Object with current params and methods to manipulate them
@@ -42,7 +42,11 @@ export interface QueryParamsReturn<T extends Record<string, unknown>> {
  * ```
  */
 export function useQueryParams<T extends Record<string | number | symbol, unknown>>(
-  defaultParams: T
+  defaultParams: T,
+  types?: Record<
+    string,
+    'string' | 'number' | 'boolean' | 'string[]' | 'number[]' | ((value: string) => unknown)
+  >
 ): QueryParamsReturn<T> {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -50,41 +54,35 @@ export function useQueryParams<T extends Record<string | number | symbol, unknow
 
   // Parse current URL parameters and merge with defaults
   const params = useMemo(() => {
-    const currentParams = qs.parse(searchParams.toString(), {
-      ignoreQueryPrefix: true,
-      parseArrays: true,
-      allowDots: true,
-      decoder: (str, defaultDecoder, charset, type) => {
-        // Handle numeric values
-        if (type === 'value') {
-          const num = Number(str)
-          if (!isNaN(num) && isFinite(num)) {
-            return num
-          }
-          // Handle boolean values
-          if (str === 'true') {
-            return true
-          }
-          if (str === 'false') {
-            return false
-          }
-        }
-        return defaultDecoder(str, defaultDecoder, charset)
-      },
+    const currentParams = queryString.parse(searchParams.toString(), {
+      parseNumbers: true,
+      parseBooleans: true,
+      arrayFormat: 'bracket',
+      types: types || {},
     })
 
-    // Merge current params with defaults, ensuring type safety
-    const mergedParams = { ...defaultParams }
+    console.log('🚀 ~ useQueryParams ~ currentParams:', currentParams)
 
-    Object.keys(defaultParams).forEach((key) => {
+    // Start with defaults, then merge all URL params
+    const mergedParams = { ...defaultParams } as T
+
+    // Merge all current params from URL (not just those in defaults)
+    Object.keys(currentParams).forEach((key) => {
       const currentValue = currentParams[key]
+      console.log(`🔍 Processing key: ${key}, value:`, currentValue, 'type:', typeof currentValue)
+
       if (currentValue !== undefined && currentValue !== null && currentValue !== '') {
+        console.log(`✅ Merging ${key}:`, currentValue)
         mergedParams[key as keyof T] = currentValue as T[keyof T]
+      } else {
+        console.log(`⚠️ Skipping ${key} - empty/null/undefined`)
       }
     })
 
+    console.log('🚀 ~ useQueryParams ~ mergedParams:', mergedParams)
+
     return mergedParams
-  }, [searchParams, defaultParams])
+  }, [searchParams, defaultParams, types])
 
   // Check if a specific parameter key exists in the URL
   const has = useCallback(
@@ -126,10 +124,10 @@ export function useQueryParams<T extends Record<string | number | symbol, unknow
   // Update specific parameters while preserving existing ones
   const setParams = useCallback(
     (updates: Partial<T>): void => {
-      const currentParams = qs.parse(searchParams.toString(), {
-        ignoreQueryPrefix: true,
-        parseArrays: true,
-        allowDots: true,
+      const currentParams = queryString.parse(searchParams.toString(), {
+        parseNumbers: true,
+        parseBooleans: true,
+        arrayFormat: 'bracket',
       })
 
       // Merge updates with current params
@@ -144,26 +142,14 @@ export function useQueryParams<T extends Record<string | number | symbol, unknow
       })
 
       // Build new query string
-      const queryString = qs.stringify(newParams, {
-        skipNulls: true,
-        arrayFormat: 'brackets',
-        allowDots: true,
-        encoder: (str, defaultEncoder, charset, type) => {
-          // Handle boolean and numeric values properly
-          if (type === 'value') {
-            if (typeof str === 'boolean') {
-              return String(str)
-            }
-            if (typeof str === 'number') {
-              return String(str)
-            }
-          }
-          return defaultEncoder(str, defaultEncoder, charset)
-        },
+      const newQueryString = queryString.stringify(newParams, {
+        skipNull: true,
+        skipEmptyString: true,
+        arrayFormat: 'bracket',
       })
 
       // Navigate to new URL with updated query parameters
-      const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+      const newUrl = newQueryString ? `${pathname}?${newQueryString}` : pathname
       router.push(newUrl, { scroll: false })
     },
     [searchParams, pathname, router]
@@ -172,24 +158,24 @@ export function useQueryParams<T extends Record<string | number | symbol, unknow
   // Remove a specific parameter from the URL
   const deleteParam = useCallback(
     (key: keyof T): void => {
-      const currentParams = qs.parse(searchParams.toString(), {
-        ignoreQueryPrefix: true,
-        parseArrays: true,
-        allowDots: true,
+      const currentParams = queryString.parse(searchParams.toString(), {
+        parseNumbers: true,
+        parseBooleans: true,
+        arrayFormat: 'bracket',
       })
 
       // Remove the specified key
       delete currentParams[String(key)]
 
       // Build new query string
-      const queryString = qs.stringify(currentParams, {
-        skipNulls: true,
-        arrayFormat: 'brackets',
-        allowDots: true,
+      const newQueryString = queryString.stringify(currentParams, {
+        skipNull: true,
+        skipEmptyString: true,
+        arrayFormat: 'bracket',
       })
 
       // Navigate to new URL without the deleted parameter
-      const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+      const newUrl = newQueryString ? `${pathname}?${newQueryString}` : pathname
       router.push(newUrl, { scroll: false })
     },
     [searchParams, pathname, router]

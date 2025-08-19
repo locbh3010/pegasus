@@ -1,6 +1,6 @@
 # useQueryParams Hook
 
-A type-safe URL query parameter management hook for Next.js applications using `useSearchParams` and the `qs` library.
+A type-safe URL query parameter management hook for Next.js applications using `useSearchParams` and the `query-string` library.
 
 ## Features
 
@@ -13,10 +13,10 @@ A type-safe URL query parameter management hook for Next.js applications using `
 
 ## Installation
 
-The hook uses the `qs` library which is already installed in this project. If you need to install it separately:
+The hook uses the `query-string` library which is already installed in this project. If you need to install it separately:
 
 ```bash
-yarn add qs @types/qs
+yarn add query-string
 ```
 
 ## Basic Usage
@@ -78,10 +78,10 @@ useQueryParams<T extends Record<string, any>>(defaultParams: T): QueryParamsRetu
 
 ```typescript
 interface QueryParamsReturn<T> {
-  params: T                                    // Current parameters merged with defaults
-  has: (key: keyof T) => boolean              // Check if parameter exists in URL
-  setParams: (updates: Partial<T>) => void    // Update parameters (merges with existing)
-  deleteParam: (key: keyof T) => void         // Remove parameter from URL
+  params: T // Current parameters merged with defaults
+  has: (key: keyof T) => boolean // Check if parameter exists in URL
+  setParams: (updates: Partial<T>) => void // Update parameters (merges with existing)
+  deleteParam: (key: keyof T) => void // Remove parameter from URL
   getParam: (key: keyof T) => T[keyof T] | undefined // Get specific parameter value
 }
 ```
@@ -94,23 +94,23 @@ interface QueryParamsReturn<T> {
 const { params, setParams } = useQueryParams({
   filters: {
     category: '',
-    priceRange: [0, 1000]
+    priceRange: [0, 1000],
   },
   tags: [] as string[],
-  sortBy: 'name' as 'name' | 'date' | 'price'
+  sortBy: 'name' as 'name' | 'date' | 'price',
 })
 
 // Update nested object
 setParams({
   filters: {
     ...params.filters,
-    category: 'electronics'
-  }
+    category: 'electronics',
+  },
 })
 
 // Update array
 setParams({
-  tags: [...params.tags, 'new-tag']
+  tags: [...params.tags, 'new-tag'],
 })
 ```
 
@@ -122,7 +122,7 @@ const { params, setParams, deleteParam } = useQueryParams({
   limit: 10,
   search: '',
   sortBy: 'created_at',
-  sortOrder: 'desc' as 'asc' | 'desc'
+  sortOrder: 'desc' as 'asc' | 'desc',
 })
 
 const handleSearch = (searchTerm: string) => {
@@ -155,9 +155,9 @@ const handleFormChange = (field: string, value: any) => {
 }
 
 // Form values are automatically synced with URL
-<input 
-  value={params.name} 
-  onChange={(e) => handleFormChange('name', e.target.value)} 
+<input
+  value={params.name}
+  onChange={(e) => handleFormChange('name', e.target.value)}
 />
 ```
 
@@ -169,7 +169,7 @@ The hook provides full type safety:
 const { params, setParams } = useQueryParams({
   count: 0,
   enabled: false,
-  category: 'all' as 'all' | 'active' | 'inactive'
+  category: 'all' as 'all' | 'active' | 'inactive',
 })
 
 // ✅ Type-safe updates
@@ -178,9 +178,9 @@ setParams({ enabled: true })
 setParams({ category: 'active' })
 
 // ❌ TypeScript errors
-setParams({ count: 'invalid' })     // Error: string not assignable to number
-setParams({ enabled: 'yes' })       // Error: string not assignable to boolean
-setParams({ category: 'invalid' })  // Error: not assignable to union type
+setParams({ count: 'invalid' }) // Error: string not assignable to number
+setParams({ enabled: 'yes' }) // Error: string not assignable to boolean
+setParams({ category: 'invalid' }) // Error: not assignable to union type
 ```
 
 ## URL Behavior
@@ -208,14 +208,14 @@ const { params } = useQueryParams({
   page: 1,
   limit: 10,
   search: '',
-  category: ''
+  category: '',
 })
 
 // Use with TanStack Query
 const { data, isLoading } = useQuery({
   queryKey: ['items', params],
   queryFn: () => fetchItems(params),
-  keepPreviousData: true
+  keepPreviousData: true,
 })
 
 // Use with SWR

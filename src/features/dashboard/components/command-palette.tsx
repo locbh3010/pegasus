@@ -180,7 +180,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       if (!acc[command.category]) {
         acc[command.category] = []
       }
-      acc[command.category].push(command)
+      acc[command.category]!.push(command)
       return acc
     },
     {} as Record<string, CommandItem[]>
