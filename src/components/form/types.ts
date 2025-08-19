@@ -67,6 +67,28 @@ export interface DateFieldProps extends BaseFormFieldProps {
   timezone?: string
 }
 
+// User selection specific props
+export interface UserOption {
+  value: string
+  label: string
+  email: string
+  avatar?: string | null
+  department?: string | null
+  position?: string | null
+  disabled?: boolean
+}
+
+export interface UserSelectFieldProps extends BaseFormFieldProps {
+  options: UserOption[]
+  multiple?: boolean
+  loading?: boolean
+  noOptionsMessage?: string
+  searchable?: boolean
+  clearable?: boolean
+  maxSelections?: number
+  onSearch?: (query: string) => void
+}
+
 // Form field wrapper props
 export interface FormFieldWrapperProps {
   label?: string

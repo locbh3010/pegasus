@@ -1,7 +1,7 @@
 export const TEST_CONFIG = {
   // Base URLs
   BASE_URL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
-  
+
   // Test user credentials
   TEST_USERS: {
     VALID_USER: {

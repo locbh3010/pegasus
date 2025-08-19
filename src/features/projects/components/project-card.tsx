@@ -1,7 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { formatDistanceToNow } from 'date-fns'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+
+dayjs.extend(relativeTime)
 import {
   Card,
   CardContent,
@@ -38,7 +41,7 @@ export function ProjectCard({
   const formatDate = (dateString: string | null) => {
     if (!dateString) return null
     try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: true })
+      return dayjs(dateString).fromNow()
     } catch {
       return null
     }
@@ -127,7 +130,7 @@ export function ProjectCard({
 
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  <span>Updated {formatDate(project.updated_at)}</span>
+                  <span>Updated {formatDate(project.updated_at || project.created_at || '')}</span>
                 </div>
               </div>
             </div>
@@ -235,7 +238,7 @@ export function ProjectCard({
       <CardFooter className="justify-between">
         <div className="text-muted-foreground flex items-center gap-1 text-xs">
           <Clock className="h-3 w-3" />
-          <span>Updated {formatDate(project.updated_at)}</span>
+          <span>Updated {formatDate(project.updated_at || project.created_at || '')}</span>
         </div>
         <Button variant="outline" size="sm" onClick={handleView}>
           <Eye className="h-4 w-4" />

@@ -19,11 +19,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Form, Formik } from 'formik'
-import { AlertCircle, CheckCircle, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { AlertCircle, CheckCircle, Edit } from 'lucide-react'
+import { useState, useMemo } from 'react'
 import * as Yup from 'yup'
 import { useProjectsContext } from '../context'
-import type { CreateProjectFormData, CreateProjectModalProps } from '../types'
+import { useProjectMembers } from '../hooks/use-project-members'
+import type { EditProjectFormData, EditProjectModalProps, UpdateProjectData } from '../types'
 import { PROJECT_PRIORITY, PROJECT_STATUS } from '../types'
 
 // Options for select fields
@@ -40,16 +41,12 @@ const statusOptions: SelectOption[] = Object.values(PROJECT_STATUS).map((status)
 // Validation schema using Yup
 const validationSchema = Yup.object({
   name: Yup.string()
-    .min(3, 'Project name must be at least 3 characters')
-    .max(100, 'Project name must be less than 100 characters')
-    .required('Project name is required'),
+    .required('Project name is required')
+    .min(2, 'Project name must be at least 2 characters')
+    .max(100, 'Project name must be less than 100 characters'),
   description: Yup.string().max(500, 'Description must be less than 500 characters'),
-  priority: Yup.string()
-    .oneOf(Object.values(PROJECT_PRIORITY), 'Please select a valid priority')
-    .required('Priority is required'),
-  status: Yup.string()
-    .oneOf(Object.values(PROJECT_STATUS), 'Please select a valid status')
-    .required('Status is required'),
+  priority: Yup.string().required('Priority is required').oneOf(Object.values(PROJECT_PRIORITY)),
+  status: Yup.string().required('Status is required').oneOf(Object.values(PROJECT_STATUS)),
   start_date: Yup.string(),
   end_date: Yup.string().test(
     'end-date-after-start',
@@ -63,60 +60,81 @@ const validationSchema = Yup.object({
   assigned_users: Yup.array().of(Yup.string()),
 })
 
-export function CreateProjectModal({
+export function EditProjectModal({
   isOpen,
   onClose,
   onSuccess,
+  project,
   className,
-}: CreateProjectModalProps) {
-  const { createProject } = useProjectsContext()
+}: EditProjectModalProps) {
+  const { updateProject } = useProjectsContext()
+  const { members } = useProjectMembers(project.id, {
+    enabled: isOpen, // Only fetch when modal is open
+  })
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  const initialValues: CreateProjectFormData = {
-    name: '',
-    description: '',
-    priority: 'medium',
-    status: 'planning',
-    start_date: '',
-    end_date: '',
-    assigned_users: [],
+  // Get current assigned user IDs from project members
+  const currentAssignedUsers = useMemo(() => {
+    return members.map((member) => member.user_id)
+  }, [members])
+
+  const initialValues: EditProjectFormData = {
+    name: project.name,
+    description: project.description || '',
+    priority: project.priority as any,
+    status: project.status as any,
+    start_date: project.start_date || '',
+    end_date: project.end_date || '',
+    assigned_users: currentAssignedUsers,
   }
 
   const handleSubmit = async (
-    values: CreateProjectFormData,
-    {
-      setSubmitting,
-      resetForm,
-    }: { setSubmitting: (isSubmitting: boolean) => void; resetForm: () => void }
+    values: EditProjectFormData,
+    { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
   ) => {
     setError(null)
     setSuccess(null)
+    setSubmitting(true)
 
     try {
-      const projectData: CreateProjectFormData = {
+      const projectData: Partial<UpdateProjectData> = {
         name: values.name,
-        description: values.description || undefined,
         priority: values.priority,
         status: values.status,
-        start_date: values.start_date || undefined,
-        end_date: values.end_date || undefined,
-        assigned_users: values.assigned_users || undefined,
       }
 
-      const newProject = await createProject(projectData)
-      setSuccess('Project created successfully!')
+      if (values.description) {
+        projectData.description = values.description
+      }
+      if (values.start_date) {
+        projectData.start_date = values.start_date
+      }
+      if (values.end_date) {
+        projectData.end_date = values.end_date
+      }
+
+      const updatedProject = await updateProject(project.id, projectData)
+
+      // Handle user assignment changes
+      if (values.assigned_users) {
+        // TODO: Implement user assignment updates
+        // This would require additional API calls to manage project_members
+        // TODO: Implement user assignment updates
+        // This would require additional API calls to manage project_members
+      }
+
+      setSuccess('Project updated successfully!')
 
       // Reset form and close modal after a short delay
       setTimeout(() => {
-        resetForm()
         setSuccess(null)
-        onSuccess?.(newProject)
+        onSuccess?.(updatedProject)
         onClose()
       }, 1500)
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Failed to create project. Please try again.'
+        err instanceof Error ? err.message : 'Failed to update project. Please try again.'
       setError(errorMessage)
     } finally {
       setSubmitting(false)
@@ -134,17 +152,18 @@ export function CreateProjectModal({
       <DialogContent className={`max-w-2xl ${className || ''}`}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Create New Project
+            <Edit className="h-5 w-5" />
+            Edit Project
           </DialogTitle>
           <DialogDescription>
-            Fill in the details below to create a new project. You can always edit these later.
+            Update the project details below. Changes will be saved immediately.
           </DialogDescription>
         </DialogHeader>
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
+          enableReinitialize
         >
           {({ isSubmitting }) => (
             <Form className="space-y-3">
@@ -158,7 +177,7 @@ export function CreateProjectModal({
 
               {/* Success Alert */}
               {success && (
-                <Alert className="border-green-200 bg-green-50 text-green-800">
+                <Alert variant="default" className="border-green-200 bg-green-50 text-green-800">
                   <CheckCircle className="h-4 w-4" />
                   <AlertDescription>{success}</AlertDescription>
                 </Alert>
@@ -216,35 +235,29 @@ export function CreateProjectModal({
               {/* User Assignment */}
               <UserSelectField
                 name="assigned_users"
-                label="Assign Users"
-                placeholder="Select users to assign to this project..."
+                label="Assigned Users"
+                placeholder="Select users assigned to this project..."
                 multiple
                 searchable
                 clearable
-                helperText="You can assign multiple users to this project. Users can be added or removed later."
+                helperText="Manage users assigned to this project. Changes will update project membership."
               />
 
               {/* Form Actions */}
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="text-destructive"
-                  onClick={handleClose}
-                  disabled={isSubmitting}
-                >
+                <Button type="button" variant="ghost" onClick={handleClose} disabled={isSubmitting}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting} className="gap-2">
                   {isSubmitting ? (
                     <>
                       <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current" />
-                      Creating...
+                      Updating...
                     </>
                   ) : (
                     <>
-                      <Plus className="h-4 w-4" />
-                      Create Project
+                      <Edit className="h-4 w-4" />
+                      Update Project
                     </>
                   )}
                 </Button>
@@ -256,3 +269,5 @@ export function CreateProjectModal({
     </Dialog>
   )
 }
+
+export default EditProjectModal

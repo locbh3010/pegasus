@@ -1,26 +1,25 @@
 'use client'
 
+import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
-import { format } from 'date-fns'
+import dayjs from 'dayjs'
 import { Field, FieldProps } from 'formik'
-import { CalendarIcon } from 'lucide-react'
-import { useState } from 'react'
+import { CalendarIcon, X } from 'lucide-react'
 import type { DateFieldProps } from './types'
 
-// Form field wrapper component (reused)
+// Form field wrapper component
 interface FormFieldWrapperProps {
-  label?: string
+  label?: string | undefined
   required?: boolean
-  error?: string
-  helperText?: string
-  className?: string
+  error?: string | undefined
+  helperText?: string | undefined
+  className?: string | undefined
   children: React.ReactNode
-  htmlFor?: string
+  htmlFor?: string | undefined
 }
 
 function FormFieldWrapper({
@@ -35,7 +34,7 @@ function FormFieldWrapper({
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
-        <Label htmlFor={htmlFor} className="text-foreground mb-2 block text-sm font-medium">
+        <Label htmlFor={htmlFor} className="text-foreground text-sm font-medium">
           {label}
           {required && <span className="text-destructive ml-1">*</span>}
         </Label>
@@ -53,28 +52,22 @@ function FormFieldWrapper({
 
 // Utility functions for date handling
 const parseDate = (value: string | Date | undefined): Date | undefined => {
-  if (!value) return undefined
-  if (value instanceof Date) return value
+  if (!value) {
+    return undefined
+  }
+  if (value instanceof Date) {
+    return value
+  }
   const parsed = new Date(value)
   return isNaN(parsed.getTime()) ? undefined : parsed
 }
 
-const formatDateForInput = (
-  date: Date | undefined,
-  formatString: string = 'yyyy-MM-dd'
-): string => {
-  if (!date) return ''
-  try {
-    return format(date, formatString)
-  } catch {
+const formatDateForInput = (date: Date | undefined): string => {
+  if (!date) {
     return ''
   }
-}
-
-const formatDateForDisplay = (date: Date | undefined): string => {
-  if (!date) return ''
   try {
-    return format(date, 'PPP') // e.g., "Jan 1, 2024"
+    return dayjs(date).format('YYYY-MM-DD')
   } catch {
     return ''
   }
@@ -84,7 +77,7 @@ const formatDateForDisplay = (date: Date | undefined): string => {
 export function DateField({
   name,
   label,
-  placeholder = 'Select a date...',
+  placeholder = 'Pick a date',
   required = false,
   disabled = false,
   error,
@@ -93,12 +86,8 @@ export function DateField({
   id,
   minDate,
   maxDate,
-  format: dateFormat = 'yyyy-MM-dd',
-  showTime = false,
-  ...props
 }: DateFieldProps) {
   const fieldId = id || name
-  const [isOpen, setIsOpen] = useState(false)
 
   const parsedMinDate = parseDate(minDate)
   const parsedMaxDate = parseDate(maxDate)
@@ -112,16 +101,15 @@ export function DateField({
 
         const handleDateSelect = (date: Date | undefined) => {
           if (date) {
-            const formattedDate = formatDateForInput(date, dateFormat)
+            const formattedDate = formatDateForInput(date)
             form.setFieldValue(name, formattedDate)
             form.setFieldTouched(name, true)
-            setIsOpen(false)
           }
         }
 
-        const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          const value = e.target.value
-          form.setFieldValue(name, value)
+        const handleReset = (e: React.MouseEvent<HTMLElement>) => {
+          e.preventDefault()
+          form.setFieldValue(name, '')
           form.setFieldTouched(name, true)
         }
 
@@ -134,63 +122,62 @@ export function DateField({
             className={className}
             htmlFor={fieldId}
           >
-            <div className="flex gap-2">
-              {/* Date Input */}
-              <Input
-                {...field}
-                id={fieldId}
-                type="date"
-                placeholder={placeholder}
-                disabled={disabled}
-                onChange={handleInputChange}
-                min={parsedMinDate ? formatDateForInput(parsedMinDate, dateFormat) : undefined}
-                max={parsedMaxDate ? formatDateForInput(parsedMaxDate, dateFormat) : undefined}
-                className={cn(
-                  'flex-1',
-                  hasError &&
-                    'border-destructive focus:border-destructive focus-visible:ring-destructive'
-                )}
-                aria-invalid={hasError ? 'true' : 'false'}
-                aria-describedby={errorMessage || helperText ? `${fieldId}-description` : undefined}
-                {...props}
-              />
-
-              {/* Calendar Popover */}
-              <Popover open={isOpen} onOpenChange={setIsOpen}>
-                <PopoverTrigger asChild>
+            <Popover>
+              <PopoverTrigger asChild>
+                <div className="relative w-full">
                   <Button
+                    type="button"
                     variant="outline"
-                    size="icon"
+                    mode="input"
+                    placeholder={!selectedDate}
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !selectedDate && 'text-muted-foreground',
+                      hasError &&
+                        'border-destructive focus:border-destructive focus-visible:ring-destructive'
+                    )}
                     disabled={disabled}
-                    className={cn('shrink-0', hasError && 'border-destructive')}
-                    aria-label="Open calendar"
+                    aria-invalid={hasError ? 'true' : 'false'}
+                    aria-describedby={
+                      errorMessage || helperText ? `${fieldId}-description` : undefined
+                    }
                   >
-                    <CalendarIcon className="h-4 w-4" />
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? (
+                      dayjs(selectedDate).format('MMMM D, YYYY')
+                    ) : (
+                      <span>{placeholder}</span>
+                    )}
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={handleDateSelect}
-                    disabled={(date) => {
-                      if (disabled) return true
-                      if (parsedMinDate && date < parsedMinDate) return true
-                      if (parsedMaxDate && date > parsedMaxDate) return true
-                      return false
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Display formatted date */}
-            {selectedDate && (
-              <p className="text-muted-foreground text-xs">
-                Selected: {formatDateForDisplay(selectedDate)}
-              </p>
-            )}
+                  {selectedDate && !disabled && (
+                    <Button
+                      type="button"
+                      variant="dim"
+                      size="sm"
+                      className="absolute top-1/2 right-1 h-6 w-6 -translate-y-1/2 p-0"
+                      onClick={handleReset}
+                      aria-label="Clear date"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleDateSelect}
+                  disabled={(date) => {
+                    if (disabled) return true
+                    if (parsedMinDate && date < parsedMinDate) return true
+                    if (parsedMaxDate && date > parsedMaxDate) return true
+                    return false
+                  }}
+                  autoFocus
+                />
+              </PopoverContent>
+            </Popover>
           </FormFieldWrapper>
         )
       }}
@@ -202,7 +189,7 @@ export function DateField({
 export function StandaloneDateField({
   name,
   label,
-  placeholder = 'Select a date...',
+  placeholder = 'Pick a date',
   required = false,
   disabled = false,
   error,
@@ -211,17 +198,14 @@ export function StandaloneDateField({
   id,
   minDate,
   maxDate,
-  format: dateFormat = 'yyyy-MM-dd',
   value,
   onChange,
-  ...props
 }: Omit<DateFieldProps, 'name'> & {
   name?: string
   value?: string
   onChange?: (value: string) => void
 }) {
   const fieldId = id || name
-  const [isOpen, setIsOpen] = useState(false)
 
   const parsedMinDate = parseDate(minDate)
   const parsedMaxDate = parseDate(maxDate)
@@ -229,15 +213,15 @@ export function StandaloneDateField({
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date && onChange) {
-      const formattedDate = formatDateForInput(date, dateFormat)
+      const formattedDate = formatDateForInput(date)
       onChange(formattedDate)
-      setIsOpen(false)
     }
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleReset = (e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault()
     if (onChange) {
-      onChange(e.target.value)
+      onChange('')
     }
   }
 
@@ -250,63 +234,60 @@ export function StandaloneDateField({
       className={className}
       htmlFor={fieldId}
     >
-      <div className="flex gap-2">
-        {/* Date Input */}
-        <Input
-          id={fieldId}
-          name={name}
-          type="date"
-          placeholder={placeholder}
-          disabled={disabled}
-          value={value || ''}
-          onChange={handleInputChange}
-          min={parsedMinDate ? formatDateForInput(parsedMinDate, dateFormat) : undefined}
-          max={parsedMaxDate ? formatDateForInput(parsedMaxDate, dateFormat) : undefined}
-          className={cn(
-            'flex-1',
-            error && 'border-destructive focus:border-destructive focus-visible:ring-destructive'
-          )}
-          aria-invalid={error ? 'true' : 'false'}
-          aria-describedby={error || helperText ? `${fieldId}-description` : undefined}
-          {...props}
-        />
-
-        {/* Calendar Popover */}
-        <Popover open={isOpen} onOpenChange={setIsOpen}>
-          <PopoverTrigger asChild>
+      <Popover>
+        <PopoverTrigger asChild>
+          <div className="relative w-full">
             <Button
+              type="button"
               variant="outline"
-              size="icon"
+              mode="input"
+              placeholder={!selectedDate}
+              className={cn(
+                'w-full justify-start text-left font-normal',
+                !selectedDate && 'text-muted-foreground',
+                error &&
+                  'border-destructive focus:border-destructive focus-visible:ring-destructive'
+              )}
               disabled={disabled}
-              className={cn('shrink-0', error && 'border-destructive')}
-              aria-label="Open calendar"
+              aria-invalid={error ? 'true' : 'false'}
+              aria-describedby={error || helperText ? `${fieldId}-description` : undefined}
             >
-              <CalendarIcon className="h-4 w-4" />
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {selectedDate ? (
+                dayjs(selectedDate).format('MMMM D, YYYY')
+              ) : (
+                <span>{placeholder}</span>
+              )}
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDateSelect}
-              disabled={(date) => {
-                if (disabled) return true
-                if (parsedMinDate && date < parsedMinDate) return true
-                if (parsedMaxDate && date > parsedMaxDate) return true
-                return false
-              }}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      {/* Display formatted date */}
-      {selectedDate && (
-        <p className="text-muted-foreground text-xs">
-          Selected: {formatDateForDisplay(selectedDate)}
-        </p>
-      )}
+            {selectedDate && !disabled && (
+              <Button
+                type="button"
+                variant="dim"
+                size="sm"
+                className="absolute top-1/2 right-1 h-6 w-6 -translate-y-1/2 p-0"
+                onClick={handleReset}
+                aria-label="Clear date"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleDateSelect}
+            disabled={(date) => {
+              if (disabled) return true
+              if (parsedMinDate && date < parsedMinDate) return true
+              if (parsedMaxDate && date > parsedMaxDate) return true
+              return false
+            }}
+            autoFocus
+          />
+        </PopoverContent>
+      </Popover>
     </FormFieldWrapper>
   )
 }

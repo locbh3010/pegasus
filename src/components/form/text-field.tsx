@@ -73,15 +73,27 @@ export function TextField({
         const hasError = meta.touched && meta.error
         const errorMessage = error || (hasError ? meta.error : undefined)
 
+        const wrapperProps: FormFieldWrapperProps = {
+          children: null, // Will be set below
+          required,
+          htmlFor: fieldId,
+        }
+
+        if (label) {
+          wrapperProps.label = label
+        }
+        if (errorMessage) {
+          wrapperProps.error = errorMessage
+        }
+        if (helperText) {
+          wrapperProps.helperText = helperText
+        }
+        if (className) {
+          wrapperProps.className = className
+        }
+
         return (
-          <FormFieldWrapper
-            label={label}
-            required={required}
-            error={errorMessage}
-            helperText={helperText}
-            className={className}
-            htmlFor={fieldId}
-          >
+          <FormFieldWrapper {...wrapperProps}>
             <Input
               {...field}
               id={fieldId}
@@ -145,15 +157,29 @@ export const StandaloneTextField = forwardRef<
   ) => {
     const fieldId = id || name
 
+    const wrapperProps: FormFieldWrapperProps = {
+      children: null, // Will be set below
+      required,
+    }
+
+    if (fieldId) {
+      wrapperProps.htmlFor = fieldId
+    }
+    if (label) {
+      wrapperProps.label = label
+    }
+    if (error) {
+      wrapperProps.error = error
+    }
+    if (helperText) {
+      wrapperProps.helperText = helperText
+    }
+    if (className) {
+      wrapperProps.className = className
+    }
+
     return (
-      <FormFieldWrapper
-        label={label}
-        required={required}
-        error={error}
-        helperText={helperText}
-        className={className}
-        htmlFor={fieldId}
-      >
+      <FormFieldWrapper {...wrapperProps}>
         <Input
           ref={ref}
           id={fieldId}

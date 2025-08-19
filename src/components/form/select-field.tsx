@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import type { SelectFieldProps, SelectOption } from './types'
+import type { SelectFieldProps } from './types'
 
 // Form field wrapper component (reused)
 interface FormFieldWrapperProps {
@@ -87,15 +87,27 @@ export function SelectField({
           form.setFieldTouched(name, true)
         }
 
+        const wrapperProps: FormFieldWrapperProps = {
+          children: null, // Will be set below
+          required,
+          htmlFor: fieldId,
+        }
+
+        if (label) {
+          wrapperProps.label = label
+        }
+        if (errorMessage) {
+          wrapperProps.error = errorMessage
+        }
+        if (helperText) {
+          wrapperProps.helperText = helperText
+        }
+        if (className) {
+          wrapperProps.className = className
+        }
+
         return (
-          <FormFieldWrapper
-            label={label}
-            required={required}
-            error={errorMessage}
-            helperText={helperText}
-            className={className}
-            htmlFor={fieldId}
-          >
+          <FormFieldWrapper {...wrapperProps}>
             <Select
               value={field.value || ''}
               onValueChange={handleValueChange}
@@ -127,7 +139,7 @@ export function SelectField({
                     <SelectItem
                       key={option.value}
                       value={String(option.value)}
-                      disabled={option.disabled}
+                      {...(option.disabled && { disabled: option.disabled })}
                     >
                       {option.label}
                     </SelectItem>
@@ -166,18 +178,32 @@ export function StandaloneSelectField({
 }) {
   const fieldId = id || name
 
+  const wrapperProps: FormFieldWrapperProps = {
+    children: null, // Will be set below
+    required,
+  }
+
+  if (fieldId) {
+    wrapperProps.htmlFor = fieldId
+  }
+  if (label) {
+    wrapperProps.label = label
+  }
+  if (error) {
+    wrapperProps.error = error
+  }
+  if (helperText) {
+    wrapperProps.helperText = helperText
+  }
+  if (className) {
+    wrapperProps.className = className
+  }
+
   return (
-    <FormFieldWrapper
-      label={label}
-      required={required}
-      error={error}
-      helperText={helperText}
-      className={className}
-      htmlFor={fieldId}
-    >
+    <FormFieldWrapper {...wrapperProps}>
       <Select
         value={value || ''}
-        onValueChange={onChange}
+        {...(onChange && { onValueChange: onChange })}
         disabled={disabled || loading}
         {...props}
       >
@@ -206,7 +232,7 @@ export function StandaloneSelectField({
               <SelectItem
                 key={option.value}
                 value={String(option.value)}
-                disabled={option.disabled}
+                {...(option.disabled && { disabled: option.disabled })}
               >
                 {option.label}
               </SelectItem>

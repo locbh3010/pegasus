@@ -68,6 +68,10 @@ export interface CreateProjectData {
 export interface UpdateProjectData {
   name?: string
   description?: string
+  priority?: ProjectPriority
+  status?: ProjectStatus
+  start_date?: string
+  end_date?: string
   color?: string
 }
 
@@ -108,6 +112,33 @@ export interface CreateProjectFormData {
   status: ProjectStatus
   start_date?: string | undefined
   end_date?: string | undefined
+  assigned_users?: string[] | undefined
+}
+
+export interface EditProjectFormData {
+  name: string
+  description?: string | undefined
+  priority: ProjectPriority
+  status: ProjectStatus
+  start_date?: string | undefined
+  end_date?: string | undefined
+  assigned_users?: string[] | undefined
+}
+
+export interface ProjectMemberWithUser {
+  id: string
+  project_id: string
+  user_id: string
+  role: 'owner' | 'manager' | 'member' | 'viewer'
+  joined_at: string
+  user: {
+    id: string
+    full_name: string
+    email: string
+    avatar_url?: string | null
+    department?: string | null
+    position?: string | null
+  }
 }
 
 export interface ProjectFormErrors {
@@ -117,6 +148,7 @@ export interface ProjectFormErrors {
   status?: string
   start_date?: string
   end_date?: string
+  assigned_users?: string
 }
 
 // API Response types
@@ -154,6 +186,14 @@ export interface CreateProjectModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess?: (project: Project) => void
+  className?: string
+}
+
+export interface EditProjectModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSuccess?: (project: Project) => void
+  project: Project
   className?: string
 }
 
@@ -211,7 +251,7 @@ export interface ProjectsContextActions {
 export interface ProjectsContextValue extends ProjectsContextState, ProjectsContextActions {}
 
 // Hook return types
-export interface UseProjectsReturn extends ProjectsContextValue {}
+export type UseProjectsReturn = ProjectsContextValue
 
 export interface UseCreateProjectReturn {
   createProject: (data: CreateProjectFormData) => Promise<Project>

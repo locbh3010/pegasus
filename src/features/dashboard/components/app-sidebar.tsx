@@ -1,6 +1,6 @@
 'use client'
 
-import { Calendar, FolderOpen, HelpCircle, Home, Search, Settings, Users } from 'lucide-react'
+import { FolderOpen, HelpCircle, Home, Search, Settings } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
 
@@ -45,11 +45,6 @@ const data = {
           url: '/dashboard/projects/completed',
         },
       ],
-    },
-    {
-      title: 'Tasks',
-      url: '/dashboard/tasks',
-      icon: Calendar,
     },
   ],
   navSecondary: [

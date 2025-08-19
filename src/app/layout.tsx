@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { QueryProvider } from '@/components/query-provider'
 import { AuthProvider } from '@/features/auth/components/auth-provider'
-import { ProjectsProvider } from '@/features/projects/context'
 import { ThemeProvider } from 'next-themes'
 
 const geistSans = Geist({
@@ -34,9 +33,7 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <ProjectsProvider>
-              <QueryProvider>{children}</QueryProvider>
-            </ProjectsProvider>
+            <QueryProvider>{children}</QueryProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

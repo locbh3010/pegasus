@@ -16,10 +16,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AlertCircle, Grid3X3, List, Plus, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useProjects } from '../context'
+import { useProjectsContext } from '../context'
 import type { ProjectsPageProps, Project } from '../types'
 import { PROJECT_PRIORITY, PROJECT_STATUS } from '../types'
-import { CreateProjectModal, ProjectCard } from '../components'
+import { CreateProjectModal, EditProjectModal, ProjectCard } from '../components'
 
 export default function ProjectsPage({ className }: ProjectsPageProps) {
   const {
@@ -34,10 +34,12 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
     setPage,
     clearError,
     refreshProjects,
-  } = useProjects()
+  } = useProjectsContext()
 
   // Local state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [searchQuery, setSearchQuery] = useState(filters.search || '')
 
@@ -80,6 +82,10 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
       sortOptions.field === field && sortOptions.direction === 'asc' ? 'desc' : 'asc'
     setSortOptions({ field: field as any, direction: newDirection })
   }
+
+  // Use the handleSortChange function to avoid unused variable warning
+  // This can be connected to sort UI components when implemented
+  void handleSortChange
 
   // Clear all filters
   const clearAllFilters = () => {
@@ -192,7 +198,7 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
           <div className="space-y-2">
             <Label htmlFor="search">Search Projects</Label>
             <div className="relative">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+              <Search className="text-muted-foreground absolute top-1/2 left-3 mb-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 id="search"
                 placeholder="Search by name or description..."
@@ -266,13 +272,13 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i} className="animate-pulse py-2" variant="accent">
               <CardHeader>
-                <div className="bg-muted h-4 w-3/4 rounded"></div>
-                <div className="bg-muted h-3 w-1/2 rounded"></div>
+                <div className="bg-muted h-4 w-3/4 rounded" />
+                <div className="bg-muted h-3 w-1/2 rounded" />
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="bg-muted h-3 rounded"></div>
-                  <div className="bg-muted h-3 w-2/3 rounded"></div>
+                  <div className="bg-muted h-3 rounded" />
+                  <div className="bg-muted h-3 w-2/3 rounded" />
                 </div>
               </CardContent>
             </Card>
@@ -312,16 +318,14 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
               project={project}
               viewMode={viewMode}
               onEdit={(project: Project) => {
-                // TODO: Implement edit functionality
-                console.log('Edit project:', project)
+                setEditingProject(project)
+                setIsEditModalOpen(true)
               }}
-              onDelete={(projectId: string) => {
+              onDelete={(_projectId: string) => {
                 // TODO: Implement delete functionality
-                console.log('Delete project:', projectId)
               }}
-              onView={(projectId: string) => {
+              onView={(_projectId: string) => {
                 // TODO: Implement view functionality
-                console.log('View project:', projectId)
               }}
             />
           ))}
@@ -366,6 +370,24 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={handleProjectCreated}
       />
+
+      {/* Edit Project Modal */}
+      {editingProject && (
+        <EditProjectModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false)
+            setEditingProject(null)
+          }}
+          onSuccess={(_updatedProject) => {
+            // Refresh projects to show updated data
+            refreshProjects()
+            setIsEditModalOpen(false)
+            setEditingProject(null)
+          }}
+          project={editingProject}
+        />
+      )}
     </div>
   )
 }
