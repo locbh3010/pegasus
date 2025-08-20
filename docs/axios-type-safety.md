@@ -40,7 +40,7 @@ Use utility functions for standardized API responses:
 // Standard API response with success/error handling
 const response = await apiUtils.getApiResponse<User>(`/users/${userId}`)
 if (response.success) {
-  console.log(response.data) // Typed as User
+    console.log(response.data) // Typed as User
 }
 
 // Paginated responses
@@ -54,13 +54,13 @@ Errors are automatically standardized and typed:
 
 ```typescript
 try {
-  const user = await api.get<User>(`/users/${userId}`)
+    const user = await api.get<User>(`/users/${userId}`)
 } catch (error) {
-  // Error is typed as ApiErrorResponse
-  const apiError = error as ApiErrorResponse
-  console.log(apiError.error.status) // HTTP status code
-  console.log(apiError.error.message) // Error message
-  console.log(apiError.error.details) // Additional error details
+    // Error is typed as ApiErrorResponse
+    const apiError = error as ApiErrorResponse
+    console.log(apiError.error.status) // HTTP status code
+    console.log(apiError.error.message) // Error message
+    console.log(apiError.error.details) // Additional error details
 }
 ```
 
@@ -70,11 +70,11 @@ Enhanced configuration options for fine-grained control:
 
 ```typescript
 const config: ApiRequestConfig = {
-  skipAuth: true,           // Skip authentication for this request
-  skipErrorHandling: true,  // Handle errors manually
-  maxRetries: 5,           // Custom retry count
-  timeout: 15000,          // Custom timeout
-  params: { search: 'john' } // Query parameters
+    skipAuth: true, // Skip authentication for this request
+    skipErrorHandling: true, // Handle errors manually
+    maxRetries: 5, // Custom retry count
+    timeout: 15000, // Custom timeout
+    params: { search: 'john' }, // Query parameters
 }
 
 const user = await api.get<User>('/users/search', config)
@@ -124,11 +124,11 @@ const result = await apiUtils.deleteApiResponse<{ deleted: boolean }>(`/users/${
 
 ```typescript
 const tasks = await apiUtils.getPaginated<Task>('/tasks/search', {
-  search: 'urgent',
-  status: ['pending', 'in-progress'],
-  assignedTo: userId,
-  page: 1,
-  limit: 20
+    search: 'urgent',
+    status: ['pending', 'in-progress'],
+    assignedTo: userId,
+    page: 1,
+    limit: 20,
 })
 ```
 
@@ -138,13 +138,9 @@ const tasks = await apiUtils.getPaginated<Task>('/tasks/search', {
 const formData = new FormData()
 formData.append('avatar', file)
 
-const result = await api.post<{ url: string }, FormData>(
-  `/users/${userId}/avatar`,
-  formData,
-  {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }
-)
+const result = await api.post<{ url: string }, FormData>(`/users/${userId}/avatar`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+})
 ```
 
 ### Error Handling Patterns
@@ -152,37 +148,39 @@ const result = await api.post<{ url: string }, FormData>(
 ```typescript
 // Pattern 1: Using try-catch with typed errors
 try {
-  const user = await api.get<User>(`/users/${userId}`)
-  return user
+    const user = await api.get<User>(`/users/${userId}`)
+    return user
 } catch (error) {
-  const apiError = error as ApiErrorResponse
-  
-  switch (apiError.error.status) {
-    case 404:
-      return null // User not found
-    case 403:
-      throw new Error('Access denied')
-    default:
-      throw error
-  }
+    const apiError = error as ApiErrorResponse
+
+    switch (apiError.error.status) {
+        case 404:
+            return null // User not found
+        case 403:
+            throw new Error('Access denied')
+        default:
+            throw error
+    }
 }
 
 // Pattern 2: Using skipErrorHandling for custom handling
-const user = await api.get<User>(`/users/${userId}`, { 
-  skipErrorHandling: true 
-}).catch(error => {
-  // Custom error handling logic
-  return null
-})
+const user = await api
+    .get<User>(`/users/${userId}`, {
+        skipErrorHandling: true,
+    })
+    .catch((error) => {
+        // Custom error handling logic
+        return null
+    })
 ```
 
 ### Concurrent Requests
 
 ```typescript
 const [user, tasks, projects] = await Promise.all([
-  api.get<User>(`/users/${userId}`),
-  api.get<Task[]>(`/users/${userId}/tasks`),
-  api.get<Project[]>(`/users/${userId}/projects`)
+    api.get<User>(`/users/${userId}`),
+    api.get<Task[]>(`/users/${userId}/tasks`),
+    api.get<Project[]>(`/users/${userId}/projects`),
 ])
 ```
 
@@ -192,7 +190,7 @@ const [user, tasks, projects] = await Promise.all([
 const controller = new AbortController()
 
 const userPromise = api.get<User>(`/users/${userId}`, {
-  signal: controller.signal
+    signal: controller.signal,
 })
 
 // Cancel after 5 seconds
@@ -205,23 +203,23 @@ setTimeout(() => controller.abort(), 5000)
 
 ```typescript
 interface ApiRequestConfig extends AxiosRequestConfig {
-  skipAuth?: boolean
-  skipErrorHandling?: boolean
-  retryCount?: number
-  maxRetries?: number
+    skipAuth?: boolean
+    skipErrorHandling?: boolean
+    retryCount?: number
+    maxRetries?: number
 }
 
 interface ApiError {
-  message: string
-  status?: number | undefined
-  code?: string | undefined
-  details?: Record<string, unknown> | undefined
+    message: string
+    status?: number | undefined
+    code?: string | undefined
+    details?: Record<string, unknown> | undefined
 }
 
 interface ApiErrorResponse {
-  error: ApiError
-  success: false
-  timestamp: string
+    error: ApiError
+    success: false
+    timestamp: string
 }
 ```
 
@@ -229,18 +227,18 @@ interface ApiErrorResponse {
 
 ```typescript
 interface ApiResponse<T> {
-  data: T
-  message?: string
-  success: boolean
+    data: T
+    message?: string
+    success: boolean
 }
 
 interface PaginatedResponse<T> extends ApiResponse<T[]> {
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
+    pagination: {
+        page: number
+        limit: number
+        total: number
+        totalPages: number
+    }
 }
 ```
 
@@ -262,14 +260,14 @@ interface PaginatedResponse<T> extends ApiResponse<T[]> {
 // Old way
 const response = await api.post('/users', userData)
 if (response?.status !== 200) {
-  throw new Error(response?.message)
+    throw new Error(response?.message)
 }
 return response.data
 
 // New way
 const response = await apiUtils.postApiResponse<User, CreateUserData>('/users', userData)
 if (!response.success) {
-  throw new Error(response.message)
+    throw new Error(response.message)
 }
 return response.data
 ```
@@ -279,19 +277,19 @@ return response.data
 ```typescript
 // Old way
 try {
-  const response = await api.get('/users/123')
-  return response.data
+    const response = await api.get('/users/123')
+    return response.data
 } catch (error) {
-  return error.response.data
+    return error.response.data
 }
 
 // New way
 try {
-  return await api.get<User>('/users/123')
+    return await api.get<User>('/users/123')
 } catch (error) {
-  const apiError = error as ApiErrorResponse
-  console.error(apiError.error.message)
-  throw error
+    const apiError = error as ApiErrorResponse
+    console.error(apiError.error.message)
+    throw error
 }
 ```
 
@@ -303,18 +301,18 @@ When writing tests, you can mock the typed axios instance:
 import { api } from '@/lib/axios'
 
 jest.mock('@/lib/axios', () => ({
-  api: {
-    get: jest.fn(),
-    post: jest.fn(),
-    put: jest.fn(),
-    patch: jest.fn(),
-    delete: jest.fn(),
-  },
-  apiUtils: {
-    getApiResponse: jest.fn(),
-    postApiResponse: jest.fn(),
-    // ... other utility methods
-  }
+    api: {
+        get: jest.fn(),
+        post: jest.fn(),
+        put: jest.fn(),
+        patch: jest.fn(),
+        delete: jest.fn(),
+    },
+    apiUtils: {
+        getApiResponse: jest.fn(),
+        postApiResponse: jest.fn(),
+        // ... other utility methods
+    },
 }))
 
 // In your test

@@ -1,208 +1,208 @@
 name: Playwright Tests
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main, develop]
 
 jobs:
-  test:
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        browser: [chromium, firefox, webkit]
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 18
-        cache: 'yarn'
-    
-    - name: Install dependencies
-      run: yarn install --frozen-lockfile
-    
-    - name: Install Playwright Browsers
-      run: yarn test:install
-    
-    - name: Build application
-      run: yarn build
-      env:
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-    
-    - name: Run Playwright tests
-      run: yarn test --project=${{ matrix.browser }}
-      env:
-        CI: true
-        PLAYWRIGHT_BASE_URL: http://localhost:3000
-        TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-        TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-    
-    - uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: playwright-report-${{ matrix.browser }}
-        path: playwright-report/
-        retention-days: 30
-    
-    - uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results-${{ matrix.browser }}
-        path: test-results/
-        retention-days: 30
+    test:
+        timeout-minutes: 60
+        runs-on: ubuntu-latest
 
-  auth-tests:
-    timeout-minutes: 30
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 18
-        cache: 'yarn'
-    
-    - name: Install dependencies
-      run: yarn install --frozen-lockfile
-    
-    - name: Install Playwright Browsers
-      run: yarn test:install
-    
-    - name: Build application
-      run: yarn build
-      env:
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-    
-    - name: Run Authentication tests
-      run: yarn test:auth
-      env:
-        CI: true
-        PLAYWRIGHT_BASE_URL: http://localhost:3000
-        TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-        TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-    
-    - name: Run OAuth Callback tests
-      run: yarn test:oauth
-      env:
-        CI: true
-        PLAYWRIGHT_BASE_URL: http://localhost:3000
-        TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-        TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-    
-    - name: Run Logout tests
-      run: yarn test:logout
-      env:
-        CI: true
-        PLAYWRIGHT_BASE_URL: http://localhost:3000
-        TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-        TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-    
-    - uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: auth-test-results
-        path: test-results/
-        retention-days: 30
+        strategy:
+            matrix:
+                browser: [chromium, firefox, webkit]
 
-  dashboard-tests:
-    timeout-minutes: 30
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 18
-        cache: 'yarn'
-    
-    - name: Install dependencies
-      run: yarn install --frozen-lockfile
-    
-    - name: Install Playwright Browsers
-      run: yarn test:install
-    
-    - name: Build application
-      run: yarn build
-      env:
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-    
-    - name: Run Dashboard tests
-      run: yarn test:dashboard
-      env:
-        CI: true
-        PLAYWRIGHT_BASE_URL: http://localhost:3000
-        TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-        TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-    
-    - uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: dashboard-test-results
-        path: test-results/
-        retention-days: 30
+        steps:
+            - uses: actions/checkout@v4
 
-  report:
-    if: always()
-    needs: [test, auth-tests, dashboard-tests]
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-    
-    - name: Merge test results
-      run: |
-        mkdir -p merged-results
-        find . -name "results.json" -exec cp {} merged-results/ \;
-    
-    - name: Generate combined report
-      run: |
-        echo "# Test Results Summary" > test-summary.md
-        echo "Generated on: $(date)" >> test-summary.md
-        echo "" >> test-summary.md
-        
-        if [ -f "merged-results/results.json" ]; then
-          echo "## Test Statistics" >> test-summary.md
-          echo "- Total tests: $(jq '.stats.total' merged-results/results.json)" >> test-summary.md
-          echo "- Passed: $(jq '.stats.passed' merged-results/results.json)" >> test-summary.md
-          echo "- Failed: $(jq '.stats.failed' merged-results/results.json)" >> test-summary.md
-          echo "- Skipped: $(jq '.stats.skipped' merged-results/results.json)" >> test-summary.md
-        fi
-    
-    - name: Comment PR
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-          if (fs.existsSync('test-summary.md')) {
-            const summary = fs.readFileSync('test-summary.md', 'utf8');
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: summary
-            });
-          }
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 18
+                  cache: 'yarn'
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+
+            - name: Install Playwright Browsers
+              run: yarn test:install
+
+            - name: Build application
+              run: yarn build
+              env:
+                  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+                  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+            - name: Run Playwright tests
+              run: yarn test --project=${{ matrix.browser }}
+              env:
+                  CI: true
+                  PLAYWRIGHT_BASE_URL: http://localhost:3000
+                  TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+                  TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+                  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+                  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: playwright-report-${{ matrix.browser }}
+                  path: playwright-report/
+                  retention-days: 30
+
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: test-results-${{ matrix.browser }}
+                  path: test-results/
+                  retention-days: 30
+
+    auth-tests:
+        timeout-minutes: 30
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 18
+                  cache: 'yarn'
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+
+            - name: Install Playwright Browsers
+              run: yarn test:install
+
+            - name: Build application
+              run: yarn build
+              env:
+                  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+                  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+            - name: Run Authentication tests
+              run: yarn test:auth
+              env:
+                  CI: true
+                  PLAYWRIGHT_BASE_URL: http://localhost:3000
+                  TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+                  TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+                  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+                  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+            - name: Run OAuth Callback tests
+              run: yarn test:oauth
+              env:
+                  CI: true
+                  PLAYWRIGHT_BASE_URL: http://localhost:3000
+                  TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+                  TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+                  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+                  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+            - name: Run Logout tests
+              run: yarn test:logout
+              env:
+                  CI: true
+                  PLAYWRIGHT_BASE_URL: http://localhost:3000
+                  TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+                  TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+                  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+                  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: auth-test-results
+                  path: test-results/
+                  retention-days: 30
+
+    dashboard-tests:
+        timeout-minutes: 30
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 18
+                  cache: 'yarn'
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+
+            - name: Install Playwright Browsers
+              run: yarn test:install
+
+            - name: Build application
+              run: yarn build
+              env:
+                  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+                  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+            - name: Run Dashboard tests
+              run: yarn test:dashboard
+              env:
+                  CI: true
+                  PLAYWRIGHT_BASE_URL: http://localhost:3000
+                  TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+                  TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+                  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+                  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: dashboard-test-results
+                  path: test-results/
+                  retention-days: 30
+
+    report:
+        if: always()
+        needs: [test, auth-tests, dashboard-tests]
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Download all artifacts
+              uses: actions/download-artifact@v4
+
+            - name: Merge test results
+              run: |
+                  mkdir -p merged-results
+                  find . -name "results.json" -exec cp {} merged-results/ \;
+
+            - name: Generate combined report
+              run: |
+                  echo "# Test Results Summary" > test-summary.md
+                  echo "Generated on: $(date)" >> test-summary.md
+                  echo "" >> test-summary.md
+
+                  if [ -f "merged-results/results.json" ]; then
+                    echo "## Test Statistics" >> test-summary.md
+                    echo "- Total tests: $(jq '.stats.total' merged-results/results.json)" >> test-summary.md
+                    echo "- Passed: $(jq '.stats.passed' merged-results/results.json)" >> test-summary.md
+                    echo "- Failed: $(jq '.stats.failed' merged-results/results.json)" >> test-summary.md
+                    echo "- Skipped: $(jq '.stats.skipped' merged-results/results.json)" >> test-summary.md
+                  fi
+
+            - name: Comment PR
+              if: github.event_name == 'pull_request'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const fs = require('fs');
+                      if (fs.existsSync('test-summary.md')) {
+                        const summary = fs.readFileSync('test-summary.md', 'utf8');
+                        github.rest.issues.createComment({
+                          issue_number: context.issue.number,
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          body: summary
+                        });
+                      }

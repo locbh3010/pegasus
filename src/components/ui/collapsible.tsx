@@ -5,32 +5,32 @@ import { cn } from '@/lib/utils'
 import { Collapsible as CollapsiblePrimitive } from 'radix-ui'
 
 function Collapsible({ ...props }: React.ComponentProps<typeof CollapsiblePrimitive.Root>) {
-  return <CollapsiblePrimitive.Root data-slot="collapsible" {...props} />
+    return <CollapsiblePrimitive.Root data-slot="collapsible" {...props} />
 }
 
 function CollapsibleTrigger({
-  ...props
+    ...props
 }: React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleTrigger>) {
-  return <CollapsiblePrimitive.CollapsibleTrigger data-slot="collapsible-trigger" {...props} />
+    return <CollapsiblePrimitive.CollapsibleTrigger data-slot="collapsible-trigger" {...props} />
 }
 
 function CollapsibleContent({
-  className,
-  children,
-  ...props
+    className,
+    children,
+    ...props
 }: React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleContent>) {
-  return (
-    <CollapsiblePrimitive.CollapsibleContent
-      data-slot="collapsible-content"
-      className={cn(
-        'data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down overflow-hidden transition-all',
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </CollapsiblePrimitive.CollapsibleContent>
-  )
+    return (
+        <CollapsiblePrimitive.CollapsibleContent
+            data-slot="collapsible-content"
+            className={cn(
+                'data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down overflow-hidden transition-all',
+                className
+            )}
+            {...props}
+        >
+            {children}
+        </CollapsiblePrimitive.CollapsibleContent>
+    )
 }
 
 export { Collapsible, CollapsibleContent, CollapsibleTrigger }

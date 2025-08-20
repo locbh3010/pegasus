@@ -78,11 +78,11 @@ useQueryParams<T extends Record<string, any>>(defaultParams: T): QueryParamsRetu
 
 ```typescript
 interface QueryParamsReturn<T> {
-  params: T // Current parameters merged with defaults
-  has: (key: keyof T) => boolean // Check if parameter exists in URL
-  setParams: (updates: Partial<T>) => void // Update parameters (merges with existing)
-  deleteParam: (key: keyof T) => void // Remove parameter from URL
-  getParam: (key: keyof T) => T[keyof T] | undefined // Get specific parameter value
+    params: T // Current parameters merged with defaults
+    has: (key: keyof T) => boolean // Check if parameter exists in URL
+    setParams: (updates: Partial<T>) => void // Update parameters (merges with existing)
+    deleteParam: (key: keyof T) => void // Remove parameter from URL
+    getParam: (key: keyof T) => T[keyof T] | undefined // Get specific parameter value
 }
 ```
 
@@ -92,25 +92,25 @@ interface QueryParamsReturn<T> {
 
 ```typescript
 const { params, setParams } = useQueryParams({
-  filters: {
-    category: '',
-    priceRange: [0, 1000],
-  },
-  tags: [] as string[],
-  sortBy: 'name' as 'name' | 'date' | 'price',
+    filters: {
+        category: '',
+        priceRange: [0, 1000],
+    },
+    tags: [] as string[],
+    sortBy: 'name' as 'name' | 'date' | 'price',
 })
 
 // Update nested object
 setParams({
-  filters: {
-    ...params.filters,
-    category: 'electronics',
-  },
+    filters: {
+        ...params.filters,
+        category: 'electronics',
+    },
 })
 
 // Update array
 setParams({
-  tags: [...params.tags, 'new-tag'],
+    tags: [...params.tags, 'new-tag'],
 })
 ```
 
@@ -118,24 +118,24 @@ setParams({
 
 ```typescript
 const { params, setParams, deleteParam } = useQueryParams({
-  page: 1,
-  limit: 10,
-  search: '',
-  sortBy: 'created_at',
-  sortOrder: 'desc' as 'asc' | 'desc',
+    page: 1,
+    limit: 10,
+    search: '',
+    sortBy: 'created_at',
+    sortOrder: 'desc' as 'asc' | 'desc',
 })
 
 const handleSearch = (searchTerm: string) => {
-  if (searchTerm) {
-    setParams({ search: searchTerm, page: 1 }) // Reset to first page
-  } else {
-    deleteParam('search') // Remove empty search
-  }
+    if (searchTerm) {
+        setParams({ search: searchTerm, page: 1 }) // Reset to first page
+    } else {
+        deleteParam('search') // Remove empty search
+    }
 }
 
 const handleSort = (field: string) => {
-  const newOrder = params.sortBy === field && params.sortOrder === 'asc' ? 'desc' : 'asc'
-  setParams({ sortBy: field, sortOrder: newOrder })
+    const newOrder = params.sortBy === field && params.sortOrder === 'asc' ? 'desc' : 'asc'
+    setParams({ sortBy: field, sortOrder: newOrder })
 }
 ```
 
@@ -167,9 +167,9 @@ The hook provides full type safety:
 
 ```typescript
 const { params, setParams } = useQueryParams({
-  count: 0,
-  enabled: false,
-  category: 'all' as 'all' | 'active' | 'inactive',
+    count: 0,
+    enabled: false,
+    category: 'all' as 'all' | 'active' | 'inactive',
 })
 
 // ✅ Type-safe updates
@@ -205,17 +205,17 @@ setParams({ category: 'invalid' }) // Error: not assignable to union type
 
 ```typescript
 const { params } = useQueryParams({
-  page: 1,
-  limit: 10,
-  search: '',
-  category: '',
+    page: 1,
+    limit: 10,
+    search: '',
+    category: '',
 })
 
 // Use with TanStack Query
 const { data, isLoading } = useQuery({
-  queryKey: ['items', params],
-  queryFn: () => fetchItems(params),
-  keepPreviousData: true,
+    queryKey: ['items', params],
+    queryFn: () => fetchItems(params),
+    keepPreviousData: true,
 })
 
 // Use with SWR

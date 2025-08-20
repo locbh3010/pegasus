@@ -35,9 +35,9 @@ Add the following redirect URLs in your Supabase Auth settings:
 1. Go to **APIs & Services** > **OAuth consent screen**
 2. Choose **External** user type (unless you have a Google Workspace)
 3. Fill in the required information:
-   - **App name**: Your application name
-   - **User support email**: Your email
-   - **Developer contact information**: Your email
+    - **App name**: Your application name
+    - **User support email**: Your email
+    - **Developer contact information**: Your email
 4. Add your domain to **Authorized domains** (for production)
 5. Save and continue through the scopes and test users sections
 
@@ -47,9 +47,9 @@ Add the following redirect URLs in your Supabase Auth settings:
 2. Click **Create Credentials** > **OAuth 2.0 Client IDs**
 3. Choose **Web application** as the application type
 4. Add these Authorized redirect URIs:
-   ```
-   https://your-project-ref.supabase.co/auth/v1/callback
-   ```
+    ```
+    https://your-project-ref.supabase.co/auth/v1/callback
+    ```
 5. Click **Create**
 
 ### Step 4: Get Client Credentials
@@ -70,9 +70,9 @@ Add the following redirect URLs in your Supabase Auth settings:
 1. Go to [GitHub Settings](https://github.com/settings/developers)
 2. Click **OAuth Apps** > **New OAuth App**
 3. Fill in the application details:
-   - **Application name**: Your app name
-   - **Homepage URL**: `http://localhost:3000` (for development)
-   - **Authorization callback URL**: `https://your-project-ref.supabase.co/auth/v1/callback`
+    - **Application name**: Your app name
+    - **Homepage URL**: `http://localhost:3000` (for development)
+    - **Authorization callback URL**: `https://your-project-ref.supabase.co/auth/v1/callback`
 4. Click **Register application**
 
 ### Step 2: Get App Credentials

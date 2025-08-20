@@ -21,16 +21,16 @@ export { default as DateFieldDefault } from './date-field'
 
 // Re-export common types for convenience
 export type {
-  BaseFormFieldProps,
-  FormikFieldProps,
-  TextFieldProps,
-  TextareaFieldProps,
-  SelectFieldProps,
-  SelectOption,
-  DateFieldProps,
-  UserSelectFieldProps,
-  UserOption,
-  FormFieldWrapperProps,
-  ValidationState,
-  FormFieldState,
+    BaseFormFieldProps,
+    FormikFieldProps,
+    TextFieldProps,
+    TextareaFieldProps,
+    SelectFieldProps,
+    SelectOption,
+    DateFieldProps,
+    UserSelectFieldProps,
+    UserOption,
+    FormFieldWrapperProps,
+    ValidationState,
+    FormFieldState,
 } from './types'
