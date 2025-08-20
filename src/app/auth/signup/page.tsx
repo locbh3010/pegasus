@@ -1,28 +1,30 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useAuth } from '@/features/auth/components/auth-provider'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Formik, Form, Field, ErrorMessage } from 'formik'
-import * as Yup from 'yup'
+import { TextField } from '@/components/form'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Card,
   CardContent,
   CardDescription,
-  CardHeader,
-  CardTitle,
-  CardHeading,
-  CardToolbar,
   CardFooter,
+  CardHeader,
+  CardHeading,
+  CardTitle,
+  CardToolbar,
 } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { useRegister } from '@/features/auth'
+import { useAuth } from '@/features/auth/components/auth-provider'
 import { OAuthButtons } from '@/features/auth/components/oauth-buttons'
-import { Rocket, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
+import { ErrorMessage, Field, Form, Formik } from 'formik'
+import { AlertCircle, Eye, EyeOff, Rocket } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import * as Yup from 'yup'
 
 interface SignUpFormData {
   username: string
@@ -47,71 +49,21 @@ const validationSchema = Yup.object({
     .matches(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
     .required('Username is required'),
   email: Yup.string().email('Please enter a valid email address').required('Email is required'),
-  password: Yup.string()
-    .min(8, 'Password must be at least 8 characters')
-    .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .matches(/[0-9]/, 'Password must contain at least one number')
-    .required('Password is required'),
+  password: Yup.string().required('Password is required'),
 })
 
 export default function SignUpPage() {
   const router = useRouter()
-  const { user, loading, signUp, signInWithOAuth } = useAuth()
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const { signInWithOAuth } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
 
-  // Check if user is already authenticated
-  useEffect(() => {
-    if (!loading && user) {
-      router.push('/dashboard')
-    }
-  }, [user, loading, router])
-
-  const handleSubmit = async (
-    values: SignUpFormData,
-    { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
-  ) => {
-    setError(null)
-    setSuccess(null)
-
-    try {
-      await signUp(values.email, values.password)
-      setSuccess('Account created successfully! Please check your email to verify your account.')
-
-      // Redirect to sign in page after a short delay
-      setTimeout(() => {
-        router.push('/auth/signin')
-      }, 2000)
-    } catch (_err) {
-      setError('An unexpected error occurred. Please try again.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
+  const { register, isLoading, isError, error } = useRegister()
 
   const handleOAuthSignIn = async (provider: 'github' | 'google') => {
-    setError(null)
-
     try {
       await signInWithOAuth(provider)
       // Note: On success, the user will be redirected to the callback page
-    } catch (_err) {
-      setError(`Failed to sign up with ${provider}. Please try again.`)
-    }
-  }
-
-  // Show loading spinner while checking authentication
-  if (loading) {
-    return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="space-y-4 text-center">
-          <div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
+    } catch (_err) {}
   }
 
   return (
@@ -139,67 +91,35 @@ export default function SignUpPage() {
             <Formik
               initialValues={{ username: '', email: '', password: '' }}
               validationSchema={validationSchema}
-              onSubmit={handleSubmit}
+              onSubmit={(values, { setSubmitting }) => {
+                register(values, {
+                  onSuccess: () => {
+                    setSubmitting(false)
+                    router.push('/auth/signin')
+                  },
+                  onError: () => {
+                    setSubmitting(false)
+                  },
+                })
+              }}
             >
               {({ isSubmitting, errors, touched }) => (
                 <Form className="space-y-4" data-form-type="other">
                   {/* Error Alert */}
-                  {error && (
+                  {isError && error && (
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
-
-                  {/* Success Alert */}
-                  {success && (
-                    <Alert>
-                      <CheckCircle className="h-4 w-4" />
-                      <AlertDescription>{success}</AlertDescription>
+                      <AlertDescription>{error?.message}</AlertDescription>
                     </Alert>
                   )}
 
                   {/* Username Field */}
-                  <div className="space-y-2">
-                    <Label htmlFor="username" className="text-foreground text-sm font-medium">
-                      Username <span className="text-destructive">*</span>
-                    </Label>
-                    <Field name="username">
-                      {({ field }: FormikFieldProps) => (
-                        <Input
-                          {...field}
-                          id="username"
-                          type="text"
-                          placeholder="Enter your username"
-                          autoComplete="username"
-                          autoCapitalize="off"
-                          spellCheck="false"
-                          data-form-type="other"
-                          data-lpignore="true"
-                          data-1p-ignore="true"
-                          className={
-                            errors.username && touched.username
-                              ? 'border-destructive focus:border-destructive'
-                              : ''
-                          }
-                          onChange={(e) => {
-                            field.onChange(e)
-                            if (error) {
-                              setError(null)
-                            }
-                            if (success) {
-                              setSuccess(null)
-                            }
-                          }}
-                        />
-                      )}
-                    </Field>
-                    <ErrorMessage
-                      name="username"
-                      component="div"
-                      className="text-destructive text-sm"
-                    />
-                  </div>
+                  <TextField
+                    name="username"
+                    label="Username"
+                    placeholder="Enter your username"
+                    helperText="Username can only contain letters, numbers, and underscores"
+                  />
 
                   {/* Email Field */}
                   <div className="space-y-2">
@@ -224,15 +144,7 @@ export default function SignUpPage() {
                               ? 'border-destructive focus:border-destructive'
                               : ''
                           }
-                          onChange={(e) => {
-                            field.onChange(e)
-                            if (error) {
-                              setError(null)
-                            }
-                            if (success) {
-                              setSuccess(null)
-                            }
-                          }}
+                          onChange={(e) => field.onChange(e)}
                         />
                       )}
                     </Field>
@@ -267,15 +179,7 @@ export default function SignUpPage() {
                                 ? 'border-destructive focus:border-destructive pr-10'
                                 : 'pr-10'
                             }
-                            onChange={(e) => {
-                              field.onChange(e)
-                              if (error) {
-                                setError(null)
-                              }
-                              if (success) {
-                                setSuccess(null)
-                              }
-                            }}
+                            onChange={(e) => field.onChange(e)}
                           />
                         )}
                       </Field>

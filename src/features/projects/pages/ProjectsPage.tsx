@@ -1,7 +1,6 @@
 'use client'
 
 import DebounceInput from '@/components/form/debounce-input'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,7 +14,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { useQueryParams } from '@/hooks/use-query-params'
 import { useDisclosure } from '@mantine/hooks'
-import { AlertCircle, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { CreateProjectModal, ProjectCard } from '../components'
 import { ProjectPriority, ProjectStatus } from '../constants'
@@ -39,7 +38,7 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
     }
   )
 
-  const { data, isPending, isError, error } = useProjectsQuery(params)
+  const { data, isPending } = useProjectsQuery(params)
 
   const [isCreateModalOpen, createModalHandlers] = useDisclosure(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -57,16 +56,6 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
           Create Project
         </Button>
       </div>
-
-      {/* Error Alert */}
-      {isError && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between">
-            {error?.message || 'An error occurred'}
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Search and Filters */}
       <Card variant="accent">
