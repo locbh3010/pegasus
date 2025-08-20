@@ -106,7 +106,9 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
                     key={priority}
                     variant={params?.priority?.includes(priority) ? 'primary' : 'outline'}
                     className="cursor-pointer"
-                    onClick={() => setParams({ priority: [priority], page: 1 })}
+                    onClick={() =>
+                      setParams({ priority: [priority, ...(params?.priority || [])], page: 1 })
+                    }
                   >
                     {priority}
                   </Badge>

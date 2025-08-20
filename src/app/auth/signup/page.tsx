@@ -17,20 +17,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { useRegister } from '@/features/auth'
-import { useAuth } from '@/features/auth/components/auth-provider'
 import { OAuthButtons } from '@/features/auth/components/oauth-buttons'
+import { useOAuth } from '@/features/auth/hooks/use-oauth'
 import { ErrorMessage, Field, Form, Formik } from 'formik'
 import { AlertCircle, Eye, EyeOff, Rocket } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import * as Yup from 'yup'
-
-interface SignUpFormData {
-  username: string
-  email: string
-  password: string
-}
 
 interface FormikFieldProps {
   field: {
@@ -53,18 +46,10 @@ const validationSchema = Yup.object({
 })
 
 export default function SignUpPage() {
-  const router = useRouter()
-  const { signInWithOAuth } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
 
-  const { register, isLoading, isError, error } = useRegister()
-
-  const handleOAuthSignIn = async (provider: 'github' | 'google') => {
-    try {
-      await signInWithOAuth(provider)
-      // Note: On success, the user will be redirected to the callback page
-    } catch (_err) {}
-  }
+  const { register, isError, error, isLoading } = useRegister()
+  const { mutate: oauth, error: oauthError, isPending: oauthPending } = useOAuth()
 
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
@@ -91,19 +76,9 @@ export default function SignUpPage() {
             <Formik
               initialValues={{ username: '', email: '', password: '' }}
               validationSchema={validationSchema}
-              onSubmit={(values, { setSubmitting }) => {
-                register(values, {
-                  onSuccess: () => {
-                    setSubmitting(false)
-                    router.push('/auth/signin')
-                  },
-                  onError: () => {
-                    setSubmitting(false)
-                  },
-                })
-              }}
+              onSubmit={(values) => register(values)}
             >
-              {({ isSubmitting, errors, touched }) => (
+              {({ errors, touched }) => (
                 <Form className="space-y-4" data-form-type="other">
                   {/* Error Alert */}
                   {isError && error && (
@@ -203,8 +178,8 @@ export default function SignUpPage() {
                   </div>
 
                   {/* Submit Button */}
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? 'Creating account...' : 'Create Account'}
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Creating account...' : 'Create Account'}
                   </Button>
 
                   {/* Divider */}
@@ -221,9 +196,9 @@ export default function SignUpPage() {
 
                   {/* OAuth Buttons */}
                   <OAuthButtons
-                    onGoogleClick={() => handleOAuthSignIn('google')}
-                    onGitHubClick={() => handleOAuthSignIn('github')}
-                    disabled={isSubmitting}
+                    onGoogleClick={() => oauth('google')}
+                    onGitHubClick={() => oauth('github')}
+                    disabled={isLoading || oauthPending}
                   />
                 </Form>
               )}

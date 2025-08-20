@@ -1,15 +1,12 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
+import { User } from '@/types'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 interface AuthContextType {
   user: User | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<void>
-  signOut: () => Promise<void>
-  signInWithOAuth: (provider: 'google' | 'github') => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -19,58 +16,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    supabase.auth.onAuthStateChange(async (_, session) => {
+      try {
+        if (session?.access_token) {
+          const response = await supabase.auth.getUser()
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+          if (response?.error) throw response.error
 
-    return () => subscription.unsubscribe()
+          setUser(response.data.user as unknown as User)
+        } else setUser(null)
+      } catch (error) {
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    })
   }, [])
-
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    if (error) {
-      throw error
-    }
-  }
-
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      throw error
-    }
-  }
-
-  const signInWithOAuth = async (provider: 'google' | 'github') => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-    if (error) {
-      throw error
-    }
-  }
 
   const value = {
     user,
     loading,
-    signIn,
-    signOut,
-    signInWithOAuth,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

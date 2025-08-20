@@ -1,6 +1,6 @@
 // Authentication-related type definitions
 
-import { Tables, TablesInsert, TablesUpdate } from '@/types'
+import { Tables, TablesInsert, TablesUpdate } from '@/types/supabase'
 
 export interface LoginCredentials {
   email: string

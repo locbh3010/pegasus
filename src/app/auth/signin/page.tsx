@@ -1,33 +1,28 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useAuth } from '@/features/auth/components/auth-provider'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Formik, Form, Field, ErrorMessage } from 'formik'
-import * as Yup from 'yup'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Card,
   CardContent,
   CardDescription,
-  CardHeader,
-  CardTitle,
-  CardHeading,
-  CardToolbar,
   CardFooter,
+  CardHeader,
+  CardHeading,
+  CardTitle,
+  CardToolbar,
 } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { useLogin } from '@/features/auth'
 import { OAuthButtons } from '@/features/auth/components/oauth-buttons'
-import { Rocket, Eye, EyeOff, AlertCircle } from 'lucide-react'
-
-interface SignInFormData {
-  email: string
-  password: string
-}
+import { useOAuth } from '@/features/auth/hooks/use-oauth'
+import { ErrorMessage, Field, Form, Formik } from 'formik'
+import { AlertCircle, Eye, EyeOff, Rocket } from 'lucide-react'
+import Link from 'next/link'
+import { useState } from 'react'
+import * as Yup from 'yup'
 
 interface FormikFieldProps {
   field: {
@@ -45,56 +40,10 @@ const validationSchema = Yup.object({
 })
 
 export default function SignInPage() {
-  const router = useRouter()
-  const { user, loading, signIn, signInWithOAuth } = useAuth()
-  const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
-  // Check if user is already authenticated
-  useEffect(() => {
-    if (!loading && user) {
-      router.push('/dashboard')
-    }
-  }, [user, loading, router])
-
-  const handleSubmit = async (
-    values: SignInFormData,
-    { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
-  ) => {
-    setError(null)
-
-    try {
-      await signIn(values.email, values.password)
-      router.push('/dashboard')
-    } catch (_err) {
-      setError('An unexpected error occurred. Please try again.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleOAuthSignIn = async (provider: 'github' | 'google') => {
-    setError(null)
-
-    try {
-      await signInWithOAuth(provider)
-      // Note: On success, the user will be redirected to the callback page
-    } catch (_err) {
-      setError(`Failed to sign in with ${provider}. Please try again.`)
-    }
-  }
-
-  // Show loading spinner while checking authentication
-  if (loading) {
-    return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="space-y-4 text-center">
-          <div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
+  const { mutate: login, error, isPending } = useLogin()
+  const { mutate: oauth, error: oauthError, isPending: oauthPending } = useOAuth()
 
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
@@ -121,15 +70,15 @@ export default function SignInPage() {
             <Formik
               initialValues={{ email: '', password: '' }}
               validationSchema={validationSchema}
-              onSubmit={handleSubmit}
+              onSubmit={(values) => login(values)}
             >
-              {({ isSubmitting, errors, touched }) => (
+              {({ errors, touched }) => (
                 <Form className="space-y-4" data-form-type="other">
                   {/* Error Alert */}
                   {error && (
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
+                      <AlertDescription>{error.message}</AlertDescription>
                     </Alert>
                   )}
 
@@ -158,9 +107,6 @@ export default function SignInPage() {
                           }
                           onChange={(e) => {
                             field.onChange(e)
-                            if (error) {
-                              setError(null)
-                            }
                           }}
                         />
                       )}
@@ -198,9 +144,6 @@ export default function SignInPage() {
                             }
                             onChange={(e) => {
                               field.onChange(e)
-                              if (error) {
-                                setError(null)
-                              }
                             }}
                           />
                         )}
@@ -225,8 +168,8 @@ export default function SignInPage() {
                   </div>
 
                   {/* Submit Button */}
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? 'Signing in...' : 'Sign In'}
+                  <Button type="submit" className="w-full" disabled={isPending}>
+                    {isPending ? 'Signing in...' : 'Sign In'}
                   </Button>
 
                   {/* Divider */}
@@ -243,9 +186,9 @@ export default function SignInPage() {
 
                   {/* OAuth Buttons */}
                   <OAuthButtons
-                    onGoogleClick={() => handleOAuthSignIn('google')}
-                    onGitHubClick={() => handleOAuthSignIn('github')}
-                    disabled={isSubmitting}
+                    onGoogleClick={() => oauth('google')}
+                    onGitHubClick={() => oauth('github')}
+                    disabled={isPending || oauthPending}
                   />
                 </Form>
               )}

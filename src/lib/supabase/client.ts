@@ -1,3 +1,4 @@
+import { Database } from '@/types'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -8,4 +9,4 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Simple Supabase client with default settings
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { useAuth } from '../components/auth-provider'
+import { useMutation } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
+import { authServices } from '../services/auth.services'
 import { LoginCredentials } from '../types'
 
 interface UseLoginOptions {
@@ -10,24 +11,12 @@ interface UseLoginOptions {
 }
 
 export function useLogin(options?: UseLoginOptions) {
-  const [isLoading, setIsLoading] = useState(false)
-  const { signIn } = useAuth()
+  const router = useRouter()
 
-  const login = async (credentials: LoginCredentials) => {
-    setIsLoading(true)
-    try {
-      await signIn(credentials.email, credentials.password)
-      options?.onSuccess?.()
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
-      options?.onError?.(errorMessage)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  return {
-    login,
-    isLoading,
-  }
+  return useMutation({
+    mutationFn: (credentials: LoginCredentials) =>
+      authServices.login(credentials.email, credentials.password),
+    onSuccess: () => router.replace('/dashboard'),
+    retry: false,
+  })
 }

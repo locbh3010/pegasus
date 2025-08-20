@@ -1,6 +1,5 @@
 'use client'
 
-import { ChevronsUpDown, LogOut, Settings } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -16,9 +15,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { useAuth } from '@/features/auth/components/auth-provider'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useLogout } from '@/features/auth'
+import { ChevronsUpDown, LogOut, Settings } from 'lucide-react'
 
 export function NavUser({
   user,
@@ -31,26 +29,8 @@ export function NavUser({
 }) {
   const { isMobile, state } = useSidebar()
   const isCollapsed = state === 'collapsed'
-  const { signOut } = useAuth()
-  const router = useRouter()
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const handleSignOut = async () => {
-    try {
-      setIsLoggingOut(true)
-      await signOut()
-      router.push('/auth/signin')
-    } catch (error) {
-      console.error('Sign out error:', error)
-      router.push('/auth/signin')
-    } finally {
-      setIsLoggingOut(false)
-    }
-  }
-
-  const handleSettings = () => {
-    router.push('/dashboard/settings')
-  }
+  const { mutate: logout, isPending } = useLogout()
 
   return (
     <SidebarMenu>
@@ -138,14 +118,14 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSettings}>
+            <DropdownMenuItem>
               <Settings />
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={handleSignOut} disabled={isLoggingOut}>
+            <DropdownMenuItem variant="destructive" onClick={() => logout()} disabled={isPending}>
               <LogOut />
-              {isLoggingOut ? 'Signing out...' : 'Log out'}
+              {isPending ? 'Signing out...' : 'Log out'}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
