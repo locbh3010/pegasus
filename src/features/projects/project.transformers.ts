@@ -3,15 +3,15 @@
  */
 
 import {
-  createTransformer,
   createEnumTransformer,
+  createTransformer,
   dateTransformers,
   numberTransformers,
 } from '@/lib/transform'
+import type { Tables } from '@/types/supabase'
 import { ProjectPriority } from './constants/project-priority'
 import { ProjectStatus } from './constants/project-status'
-import type { Tables } from '@/types/supabase'
-import type { Project, CreateProjectData } from './types'
+import type { CreateProjectData, Project } from './types'
 
 /**
  * Transform raw database project to typed Project

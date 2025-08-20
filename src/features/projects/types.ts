@@ -3,11 +3,13 @@ import { Pagination } from '@/types/common'
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/supabase'
 import { ProjectPriority } from './constants/project-priority'
 import { ProjectStatus } from './constants/project-status'
+import { Member } from '../members/member.types'
 
 // Core Project interface using Supabase types with enum overrides
 export interface Project extends Omit<Tables<'projects'>, 'priority' | 'status'> {
   priority: ProjectPriority
   status: ProjectStatus
+  members: Member[]
 }
 
 // Database operation types using Supabase types with enum overrides

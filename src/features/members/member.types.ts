@@ -9,6 +9,7 @@ export enum MemberRole {
 
 export type Member = Tables<'project_members'> & {
   role: MemberRole
+  user: Tables<'users'>
 }
 
 export type MemberInsert = TablesInsert<'project_members'> & {
