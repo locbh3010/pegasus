@@ -3,10 +3,16 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, CheckCircle, Zap, Shield, Rocket } from 'lucide-react'
+import { useQueryParams } from '@/hooks/use-query-params'
 
 export default function LandingPage() {
+    const { params, setParams } = useQueryParams<{ test?: string }>({ test: undefined })
+    console.log('🚀 ~ LandingPage ~ params:', params)
     return (
         <div className="flex flex-col">
+            <Button onClick={() => setParams({ test: Math.random().toString() })}>
+                test add params
+            </Button>
             {/* Hero Section */}
             <section className="container mx-auto px-4 py-20 text-center">
                 <div className="mx-auto max-w-4xl">
