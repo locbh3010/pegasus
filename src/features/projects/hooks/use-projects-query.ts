@@ -1,6 +1,6 @@
 import { useAuth } from '@/features/auth'
 import { useQuery } from '@tanstack/react-query'
-import { projectServices } from '../services/project.services'
+import { getProjects } from '../services/project.actions'
 import { ProjectsQueryParams } from '../types'
 
 export function useProjectsQuery(params: ProjectsQueryParams) {
@@ -8,7 +8,14 @@ export function useProjectsQuery(params: ProjectsQueryParams) {
 
   return useQuery({
     queryKey: ['projects', params, user?.id],
-    queryFn: () => projectServices.getProjects(params, user?.id),
-    enabled: !!user,
+    queryFn: async () => {
+      const resp = await getProjects(params, user?.id)
+      console.log('🚀 ~ useProjectsQuery ~ resp:', resp)
+
+      if (resp.error) throw new Error(resp.error.message)
+
+      return resp
+    },
+    enabled: !!user?.id,
   })
 }

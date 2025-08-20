@@ -1,5 +1,5 @@
 // Project-related type definitions (UI-only)
-import { Pagination } from '@/types/common'
+import { Pagination, QueryParams } from '@/types/common'
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/supabase'
 import { ProjectPriority } from './constants/project-priority'
 import { ProjectStatus } from './constants/project-status'
@@ -44,9 +44,8 @@ export interface ProjectsPageProps {
   className?: string
 }
 
-export interface ProjectsQueryParams extends Pagination {
+export interface ProjectsQueryParams extends QueryParams, Pagination {
   search?: string
   status?: ProjectStatus[]
   priority?: ProjectPriority[]
-  [key: string | number | symbol]: unknown
 }

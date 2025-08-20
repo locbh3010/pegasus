@@ -10,16 +10,6 @@ export const queryClient = new QueryClient({
       // Data stays in cache for 5 minutes by default
       gcTime: 5 * 60 * 1000,
       // Retry failed requests 3 times with exponential backoff
-      retry: (failureCount, error) => {
-        // Don't retry on 4xx errors (client errors)
-        if (error && typeof error === 'object' && 'status' in error) {
-          const status = error.status as number
-          if (status >= 400 && status < 500) {
-            return false
-          }
-        }
-        return failureCount < 3
-      },
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       // Refetch on window focus in development
       refetchOnWindowFocus: false,
@@ -29,22 +19,11 @@ export const queryClient = new QueryClient({
       refetchOnMount: false,
       // Network mode for better offline handling
       networkMode: 'online',
+      retry: false,
     },
     mutations: {
       // Retry mutations once for network errors
-      retry: (failureCount, error) => {
-        // Don't retry on 4xx errors (client errors)
-        if (error && typeof error === 'object' && 'status' in error) {
-          const status = error.status as number
-          if (status >= 400 && status < 500) {
-            return false
-          }
-        }
-        return failureCount < 1
-      },
-      retryDelay: 1000,
-      // Network mode for mutations
-      networkMode: 'online',
+      retry: false,
     },
   },
 })

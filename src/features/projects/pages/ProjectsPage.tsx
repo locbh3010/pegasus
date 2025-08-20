@@ -33,8 +33,6 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
       search: 'string',
       status: 'string[]',
       priority: 'string[]',
-      start_date: 'string',
-      end_date: 'string',
     }
   )
 
