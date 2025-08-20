@@ -12,7 +12,6 @@ import {
     Users,
     Settings,
     FileText,
-    Calendar,
     MessageSquare,
     ChevronDown,
     ChevronRight,

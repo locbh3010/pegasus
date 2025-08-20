@@ -43,7 +43,7 @@ export default function SignInPage() {
     const [showPassword, setShowPassword] = useState(false)
 
     const { mutate: login, error, isPending } = useLogin()
-    const { mutate: oauth, error: oauthError, isPending: oauthPending } = useOAuth()
+    const { mutate: oauth, isPending: oauthPending } = useOAuth()
 
     return (
         <div className="bg-background flex min-h-screen items-center justify-center p-4">

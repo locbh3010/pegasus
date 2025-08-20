@@ -10,13 +10,15 @@ interface UseLoginOptions {
     onError?: (error: string) => void
 }
 
-export function useLogin(options?: UseLoginOptions) {
+export function useLogin(_options?: UseLoginOptions) {
     const router = useRouter()
 
     return useMutation({
         mutationFn: async (credentials: LoginCredentials) => {
             const { error } = await login(credentials.email, credentials.password)
-            if (error) throw new Error(error.message)
+            if (error) {
+                throw new Error(error.message)
+            }
         },
         onSuccess: () => router.replace('/dashboard'),
         retry: false,

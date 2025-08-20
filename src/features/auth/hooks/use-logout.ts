@@ -10,7 +10,9 @@ export function useLogout() {
     return useMutation({
         mutationFn: async () => {
             const { error } = await logout()
-            if (error) throw new Error(error.message)
+            if (error) {
+                throw new Error(error.message)
+            }
         },
         onSuccess: () => router.push('/auth/signin'),
         onError: (error) => {

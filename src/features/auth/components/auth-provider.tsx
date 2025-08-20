@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useIsomorphicEffect(() => {
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange((event) => {
+        } = supabase.auth.onAuthStateChange((_event) => {
             refetch()
         })
         return () => {

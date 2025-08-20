@@ -11,7 +11,9 @@ export function useRegister() {
     const { mutate, isPending, isError, error } = useMutation({
         mutationFn: async (credentials: RegisterCredentials) => {
             const response = await register(credentials)
-            if (response.error) throw new Error(response.error.message)
+            if (response.error) {
+                throw new Error(response.error.message)
+            }
         },
         onSuccess: () => router.replace('/dashboard'),
         retry: false,

@@ -3,6 +3,6 @@ import { CreateProjectData } from '../types'
 
 export function useCreateProject() {
     return useMutation({
-        mutationFn: async (project: CreateProjectData) => {},
+        mutationFn: async (_project: CreateProjectData) => {},
     })
 }

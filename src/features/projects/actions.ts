@@ -35,8 +35,8 @@ export const getProjects = async (params: ProjectsQueryParams) => {
     return response
 }
 
-export const deleteProject = async (projectId: string) => {
-    const server = await createSsr()
+export const deleteProject = async (_projectId: string) => {
+    const _server = await createSsr()
 
     return null
 }

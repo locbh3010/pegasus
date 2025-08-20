@@ -29,7 +29,7 @@ function makeQueryClient() {
                 // include pending queries in dehydration
                 shouldDehydrateQuery: (query) =>
                     defaultShouldDehydrateQuery(query) || query.state.status === 'pending',
-                shouldRedactErrors: (error) => {
+                shouldRedactErrors: (_error) => {
                     // We should not catch Next.js server errors
                     // as that's how Next.js detects dynamic pages
                     // so we cannot redact them.
@@ -53,7 +53,9 @@ export function getQueryClient() {
         // This is very important, so we don't re-make a new client if React
         // suspends during the initial render. This may not be needed if we
         // have a suspense boundary BELOW the creation of the query client
-        if (!browserQueryClient) browserQueryClient = makeQueryClient()
+        if (!browserQueryClient) {
+            browserQueryClient = makeQueryClient()
+        }
         return browserQueryClient
     }
 }

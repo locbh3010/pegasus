@@ -33,7 +33,9 @@ export const loginOAuth = async (provider: Provider) => {
         options: { redirectTo: `${origin}/auth/callback` },
     })
 
-    if (error) throw new Error(error.message)
+    if (error) {
+        throw new Error(error.message)
+    }
 
     return redirect(data.url)
 }

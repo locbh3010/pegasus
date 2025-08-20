@@ -10,7 +10,7 @@ import {
     CommandItem,
     CommandList,
 } from '@/components/ui/command'
-import { Home, BarChart3, Users, Settings, Calendar, FolderOpen, Folder } from 'lucide-react'
+import { Home, BarChart3, Users, Settings, FolderOpen, Folder } from 'lucide-react'
 
 interface CommandPaletteProps {
     isOpen: boolean

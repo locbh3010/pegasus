@@ -13,8 +13,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="bg-background flex h-screen w-full items-center justify-center">
                 <div className="flex flex-col items-center space-y-4">
                     <div className="relative">
-                        <div className="border-muted border-t-primary h-12 w-12 animate-spin rounded-full border-4"></div>
-                        <div className="border-primary/20 absolute inset-0 h-12 w-12 animate-pulse rounded-full border-4"></div>
+                        <div className="border-muted border-t-primary h-12 w-12 animate-spin rounded-full border-4" />
+                        <div className="border-primary/20 absolute inset-0 h-12 w-12 animate-pulse rounded-full border-4" />
                     </div>
                     <div className="text-center">
                         <h3 className="text-foreground text-lg font-semibold">Loading...</h3>

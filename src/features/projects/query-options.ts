@@ -8,7 +8,9 @@ export const projectsQueryOptions = (params: ProjectsQueryParams) => {
         queryFn: async () => {
             const resp = await getProjects(params)
 
-            if (resp.error) throw new Error(resp.error.message)
+            if (resp.error) {
+                throw new Error(resp.error.message)
+            }
 
             return resp
         },
