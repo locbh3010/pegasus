@@ -95,44 +95,6 @@ const commands: CommandItem[] = [
     keywords: ['archived', 'projects', 'old'],
   },
 
-  // Tasks
-  {
-    id: 'tasks',
-    title: 'All Tasks',
-    description: 'Manage your tasks',
-    href: '/dashboard/tasks',
-    icon: Calendar,
-    category: 'Tasks',
-    keywords: ['tasks', 'todo', 'work', 'schedule'],
-  },
-  {
-    id: 'my-tasks',
-    title: 'My Tasks',
-    description: 'View tasks assigned to you',
-    href: '/dashboard/tasks/my',
-    icon: Calendar,
-    category: 'Tasks',
-    keywords: ['my', 'tasks', 'assigned'],
-  },
-  {
-    id: 'overdue-tasks',
-    title: 'Overdue Tasks',
-    description: 'View overdue tasks',
-    href: '/dashboard/tasks/overdue',
-    icon: Calendar,
-    category: 'Tasks',
-    keywords: ['overdue', 'tasks', 'late'],
-  },
-  {
-    id: 'completed-tasks',
-    title: 'Completed Tasks',
-    description: 'View completed tasks',
-    href: '/dashboard/tasks/completed',
-    icon: Calendar,
-    category: 'Tasks',
-    keywords: ['completed', 'tasks', 'done'],
-  },
-
   // Accounts
   {
     id: 'team-members',

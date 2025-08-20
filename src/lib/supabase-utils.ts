@@ -2,9 +2,6 @@
 // These functions are kept for potential future database operations
 import type { TablesInsert, TablesUpdate } from '@/types/supabase'
 
-type TaskInsert = TablesInsert<'tasks'>
-type TaskUpdate = TablesUpdate<'tasks'>
-
 // Mock supabase client for now since we're using NextAuth
 const createMockQueryBuilder = () => ({
   select: (_columns?: string) => createMockQueryBuilder(),
@@ -21,9 +18,12 @@ const createMockQueryBuilder = () => ({
 const supabase = {
   from: (_table: string) => createMockQueryBuilder(),
   auth: {
-    getUser: () => Promise.resolve({ data: { user: null }, error: null as { message: string } | null }),
-    signInWithPassword: (_credentials: unknown) => Promise.resolve({ data: null, error: null as { message: string } | null }),
-    signUp: (_credentials: unknown) => Promise.resolve({ data: null, error: null as { message: string } | null }),
+    getUser: () =>
+      Promise.resolve({ data: { user: null }, error: null as { message: string } | null }),
+    signInWithPassword: (_credentials: unknown) =>
+      Promise.resolve({ data: null, error: null as { message: string } | null }),
+    signUp: (_credentials: unknown) =>
+      Promise.resolve({ data: null, error: null as { message: string } | null }),
     signOut: () => Promise.resolve({ error: null as { message: string } | null }),
   },
   channel: (_name: string) => ({
@@ -31,83 +31,9 @@ const supabase = {
   }),
 }
 
-// Task operations
-export const taskOperations = {
-  // Get all tasks for a user
-  async getTasks(userId: string) {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      throw new Error(`Failed to fetch tasks: ${error.message}`)
-    }
-
-    return data
-  },
-
-  // Create a new task
-  async createTask(task: TaskInsert) {
-    const { data, error } = await supabase.from('tasks').insert(task).select().single()
-
-    if (error) {
-      throw new Error(`Failed to create task: ${error.message}`)
-    }
-
-    return data
-  },
-
-  // Update a task
-  async updateTask(id: string, updates: TaskUpdate) {
-    const { data, error } = await supabase
-      .from('tasks')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) {
-      throw new Error(`Failed to update task: ${error.message}`)
-    }
-
-    return data
-  },
-
-  // Delete a task
-  async deleteTask(id: string) {
-    const { error } = await supabase.from('tasks').delete().eq('id', id)
-
-    if (error) {
-      throw new Error(`Failed to delete task: ${error.message}`)
-    }
-  },
-
-  // Toggle task completion
-  async toggleTask(id: string, completed: boolean) {
-    return this.updateTask(id, { completed_at: completed ? new Date().toISOString() : null })
-  },
-}
-
 // Real-time subscriptions
 export const subscriptions = {
-  // Subscribe to task changes
-  subscribeToTasks(userId: string, callback: (payload: unknown) => void) {
-    return supabase
-      .channel('tasks')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tasks',
-          filter: `user_id=eq.${userId}`,
-        },
-        callback
-      )
-      .subscribe()
-  },
+  // Add subscription functions here when needed
 }
 
 // Auth helpers

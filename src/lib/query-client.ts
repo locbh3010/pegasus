@@ -56,12 +56,7 @@ export const queryKeys = {
     user: ['auth', 'user'] as const,
     session: ['auth', 'session'] as const,
   },
-  // Tasks related queries
-  tasks: {
-    all: ['tasks'] as const,
-    byUser: (userId: string) => ['tasks', 'user', userId] as const,
-    byId: (id: string) => ['tasks', 'id', id] as const,
-  },
+
   // Projects related queries
   projects: {
     all: ['projects'] as const,

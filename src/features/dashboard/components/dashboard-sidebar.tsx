@@ -58,12 +58,7 @@ const navigationItems: NavItem[] = [
       { title: 'Archived', href: '/dashboard/projects/archived', icon: Folder },
     ],
   },
-  {
-    title: 'Tasks',
-    href: '/dashboard/tasks',
-    icon: Calendar,
-    badge: '12',
-  },
+
   {
     title: 'Team',
     icon: Users,

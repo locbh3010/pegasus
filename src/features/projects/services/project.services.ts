@@ -1,5 +1,4 @@
 import { getPagination } from '@/lib/utils'
-import { projectTransformers } from '../project.transformers'
 import { CreateProjectData, ProjectsQueryParams } from '../types'
 import { supabase } from '@/lib/supabase/client'
 
@@ -20,10 +19,7 @@ export const projectServices = {
       throw new Error(result.error.message)
     }
 
-    return {
-      ...result,
-      data: result.data ? projectTransformers.fromDatabase(result.data) : [],
-    }
+    return result
   },
 
   insert: async (project: CreateProjectData) => {
@@ -33,10 +29,7 @@ export const projectServices = {
       throw new Error(result.error.message)
     }
 
-    return {
-      ...result,
-      data: result.data ? projectTransformers.fromDatabase([result.data])[0] : null,
-    }
+    return result
   },
 
   delete: (id: string) => {
