@@ -2,15 +2,15 @@
 
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { authServices } from '../services/auth.services'
+import { logout } from '../actions'
 
 export function useLogout() {
   const router = useRouter()
 
   return useMutation({
     mutationFn: async () => {
-      const response = await authServices.logout()
-      if (response.error) throw new Error(response.error.message)
+      const { error } = await logout()
+      if (error) throw new Error(error.message)
     },
     onSuccess: () => router.push('/auth/signin'),
     onError: (error) => {

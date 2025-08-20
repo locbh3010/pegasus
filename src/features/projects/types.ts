@@ -1,9 +1,41 @@
 // Project-related type definitions (UI-only)
 import { Pagination, QueryParams } from '@/types/common'
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/supabase'
-import { ProjectPriority } from './constants/project-priority'
-import { ProjectStatus } from './constants/project-status'
-import { Member } from '../members/member.types'
+
+export enum ProjectStatus {
+  PLANNING = 'planning',
+  ACTIVE = 'active',
+  ON_HOLD = 'on_hold',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+}
+
+export enum ProjectPriority {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  URGENT = 'urgent',
+}
+
+export enum MemberRole {
+  OWNER = 'owner',
+  MANAGER = 'manager',
+  MEMBER = 'member',
+  VIEWER = 'viewer',
+}
+
+export type Member = Tables<'project_members'> & {
+  role: MemberRole
+  user: Tables<'profiles'>
+}
+
+export type MemberInsert = TablesInsert<'project_members'> & {
+  role: MemberRole
+}
+
+export type MemberUpdate = TablesUpdate<'project_members'> & {
+  role: MemberRole
+}
 
 // Core Project interface using Supabase types with enum overrides
 export interface Project extends Omit<Tables<'projects'>, 'priority' | 'status'> {
@@ -21,27 +53,6 @@ export type CreateProjectData = Omit<TablesInsert<'projects'>, 'priority' | 'sta
 export type UpdateProjectData = Omit<TablesUpdate<'projects'>, 'priority' | 'status'> & {
   priority?: ProjectPriority
   status?: ProjectStatus
-}
-
-// Component Props types
-export interface ProjectCardProps {
-  project: Project
-  viewMode?: 'grid' | 'list'
-  onDelete?: (projectId: Project['id']) => void
-  onView?: (projectId: Project['id']) => void
-  className?: string
-}
-
-export interface CreateProjectModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSuccess?: () => void
-  className?: string
-}
-
-export interface ProjectsPageProps {
-  initialProjects?: Project[]
-  className?: string
 }
 
 export interface ProjectsQueryParams extends QueryParams, Pagination {

@@ -15,15 +15,7 @@ export async function createSsr() {
           return cookieStore.getAll()
         },
         setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
         },
       },
     }
@@ -34,7 +26,6 @@ export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
-
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY!,
@@ -56,8 +47,23 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // refreshing the auth token
-  await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (request.nextUrl.pathname === '/') {
+    return supabaseResponse
+  }
+
+  if (user && !request.nextUrl.pathname.startsWith('/dashboard')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    return NextResponse.redirect(url)
+  } else if (!user && !request.nextUrl.pathname.startsWith('/auth')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/signin'
+    return NextResponse.redirect(url)
+  }
 
   return supabaseResponse
 }

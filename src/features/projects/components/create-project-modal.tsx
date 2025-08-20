@@ -17,15 +17,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useAuth } from '@/features/auth'
 import dayjs from 'dayjs'
 import { Form, Formik } from 'formik'
 import { AlertCircle, Plus } from 'lucide-react'
 import { useState } from 'react'
 import * as Yup from 'yup'
-import { PROJECT_PRIORITY, PROJECT_STATUS, ProjectPriority, ProjectStatus } from '../constants'
 import { useCreateProject } from '../hooks/use-create-project'
-import type { CreateProjectData, CreateProjectModalProps } from '../types'
+import { ProjectPriority, ProjectStatus, type CreateProjectData } from '../types'
+import { PROJECT_PRIORITY } from '../constants/project-priority'
+import { PROJECT_STATUS } from '../constants/project-status'
+
+export interface CreateProjectModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSuccess?: () => void
+  className?: string
+}
 
 // Options for select fields
 const priorityOptions: SelectOption[] = (Object.values(PROJECT_PRIORITY) as string[]).map(
@@ -73,7 +80,6 @@ export function CreateProjectModal({
   onSuccess,
   className,
 }: CreateProjectModalProps) {
-  const { user } = useAuth()
   const { mutate: createProject, isPending } = useCreateProject()
 
   const [error, setError] = useState<string | null>(null)
@@ -102,7 +108,6 @@ export function CreateProjectModal({
             start_date: dayjs().toISOString(),
             priority: ProjectPriority.MEDIUM,
             status: ProjectStatus.PLANNING,
-            created_by: user?.id || '',
           }}
           validationSchema={validationSchema}
           onSubmit={(values, { setSubmitting, resetForm }) => {

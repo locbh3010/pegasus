@@ -2,7 +2,7 @@
 
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { authServices } from '../services/auth.services'
+import { login } from '../actions'
 import { LoginCredentials } from '../types'
 
 interface UseLoginOptions {
@@ -14,8 +14,10 @@ export function useLogin(options?: UseLoginOptions) {
   const router = useRouter()
 
   return useMutation({
-    mutationFn: (credentials: LoginCredentials) =>
-      authServices.login(credentials.email, credentials.password),
+    mutationFn: async (credentials: LoginCredentials) => {
+      const { error } = await login(credentials.email, credentials.password)
+      if (error) throw new Error(error.message)
+    },
     onSuccess: () => router.replace('/dashboard'),
     retry: false,
   })

@@ -1,8 +1,9 @@
 'use client'
 
 import { supabase } from '@/lib/supabase/client'
-import { User } from '@/types'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { User } from '@supabase/supabase-js'
+import { useQuery } from '@tanstack/react-query'
+import { createContext, useContext } from 'react'
 
 interface AuthContextType {
   user: User | null
@@ -12,33 +13,16 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data, isPending } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => supabase.auth.getUser(),
+  })
 
-  useEffect(() => {
-    supabase.auth.onAuthStateChange(async (_, session) => {
-      try {
-        if (session?.access_token) {
-          const response = await supabase.auth.getUser()
-
-          if (response?.error) throw response.error
-
-          setUser(response.data.user as unknown as User)
-        } else setUser(null)
-      } catch (error) {
-        setUser(null)
-      } finally {
-        setLoading(false)
-      }
-    })
-  }, [])
-
-  const value = {
-    user,
-    loading,
-  }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ user: data?.data?.user || null, loading: isPending }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {

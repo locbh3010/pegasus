@@ -1,37 +1,18 @@
-'use client'
+import { createSsr } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
-import { supabase } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+export default async function AuthCallbackPage() {
+  const server = await createSsr()
 
-export default function AuthCallbackPage() {
-  const router = useRouter()
+  const { data, error } = await server.auth.getSession()
 
-  useEffect(() => {
-    const handleAuthCallback = async () => {
-      try {
-        // Handle the OAuth callback
-        const { data, error } = await supabase.auth.getSession()
+  if (error) {
+    return redirect('/auth/signin?error=callback_error')
+  }
 
-        if (error) {
-          router.replace('/auth/signin?error=callback_error')
-          return
-        }
-
-        if (data.session) {
-          // Success - redirect to dashboard
-          router.replace('/dashboard')
-        } else {
-          // No session - redirect to signin
-          router.replace('/auth/signin')
-        }
-      } catch (_error) {
-        router.replace('/auth/signin?error=callback_error')
-      }
-    }
-
-    handleAuthCallback()
-  }, [router])
+  if (data.session) {
+    return redirect('/dashboard')
+  }
 
   return (
     <div className="bg-background flex min-h-screen items-center justify-center">

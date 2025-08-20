@@ -16,12 +16,15 @@ import { useQueryParams } from '@/hooks/use-query-params'
 import { useDisclosure } from '@mantine/hooks'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
+import { deleteProject } from '../actions'
 import { CreateProjectModal, ProjectCard } from '../components'
-import { ProjectPriority, ProjectStatus } from '../constants'
+import { PROJECT_PRIORITY, ProjectPriority } from '../constants/project-priority'
+import { PROJECT_STATUS, ProjectStatus } from '../constants/project-status'
 import { useProjectsQuery } from '../hooks/use-projects-query'
-import type { ProjectsPageProps, ProjectsQueryParams } from '../types'
+import type { ProjectsQueryParams } from '../types'
+import { supabase } from '@/lib/supabase/client'
 
-export default function ProjectsPage({ className }: ProjectsPageProps) {
+export default function ProjectsPage() {
   const { params, setParams, resetParams, hasFilters } = useQueryParams<ProjectsQueryParams>(
     {
       page: 1,
@@ -42,13 +45,14 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
   const [searchQuery, setSearchQuery] = useState('')
 
   return (
-    <div className={`space-y-6 ${className || ''}`}>
+    <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
           <p className="text-muted-foreground">Manage and track your projects</p>
         </div>
+        <button onClick={() => deleteProject('123')}>test</button>
         <Button onClick={createModalHandlers.open} className="gap-2">
           <Plus className="h-4 w-4" />
           Create Project
@@ -82,7 +86,7 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
             <div className="space-y-3">
               <Label>Status</Label>
               <div className="flex flex-wrap gap-2">
-                {(Object.values(ProjectStatus) as ProjectStatus[]).map((status) => (
+                {(Object.values(PROJECT_STATUS) as ProjectStatus[]).map((status) => (
                   <Badge
                     key={status}
                     variant={params?.status?.includes(status) ? 'primary' : 'outline'}
@@ -99,7 +103,7 @@ export default function ProjectsPage({ className }: ProjectsPageProps) {
             <div className="space-y-3">
               <Label>Priority</Label>
               <div className="flex flex-wrap gap-2">
-                {(Object.values(ProjectPriority) as ProjectPriority[]).map((priority) => (
+                {(Object.values(PROJECT_PRIORITY) as ProjectPriority[]).map((priority) => (
                   <Badge
                     key={priority}
                     variant={params?.priority?.includes(priority) ? 'primary' : 'outline'}

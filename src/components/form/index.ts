@@ -19,10 +19,6 @@ export { default as SelectFieldDefault } from './select-field'
 export { DateField, StandaloneDateField } from './date-field'
 export { default as DateFieldDefault } from './date-field'
 
-// UserSelectField components
-export { UserSelectField, StandaloneUserSelectField } from './user-select-field'
-export { default as UserSelectFieldDefault } from './user-select-field'
-
 // Re-export common types for convenience
 export type {
   BaseFormFieldProps,

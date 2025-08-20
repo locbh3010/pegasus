@@ -1,14 +1,11 @@
 import { useMutation } from '@tanstack/react-query'
-import { authServices } from '../services/auth.services'
+import { loginOAuth } from '../actions'
 
 export function useOAuth() {
   return useMutation({
     mutationFn: async (provider: 'google' | 'github') => {
-      const response = await authServices.loginOAuth(provider)
-
-      if (response.error) throw new Error(response.error.message)
-
-      return response.data
+      const { error } = await loginOAuth(provider)
+      if (error) throw new Error(error.message)
     },
     onError: (error) => {
       console.error('useOAuth error:', error)

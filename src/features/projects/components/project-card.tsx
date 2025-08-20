@@ -25,7 +25,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Calendar, Clock, MoreHorizontal, Trash2, Eye, AlertCircle } from 'lucide-react'
-import type { ProjectCardProps } from '../types'
+import { Project } from '../types'
+
+export interface ProjectCardProps {
+  project: Project
+  viewMode?: 'grid' | 'list'
+  onDelete?: (projectId: Project['id']) => void
+  onView?: (projectId: Project['id']) => void
+  className?: string
+}
 
 export function ProjectCard({
   project,
