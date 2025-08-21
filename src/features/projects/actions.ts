@@ -2,23 +2,10 @@
 
 import { createSsr } from '@/lib/supabase/server'
 import { getPagination } from '@/lib/utils'
-import { Project, ProjectsQueryParams } from './types'
+import { CreateProjectData, Project, ProjectMemberRole, ProjectsQueryParams } from './types'
 
 export const getProjects = async (params: ProjectsQueryParams) => {
     const server = await createSsr()
-    const {
-        data: { user },
-    } = await server.auth.getUser()
-
-    if (!user) {
-        return {
-            error: {
-                message: 'User not found',
-            },
-            status: 401,
-            data: null,
-        }
-    }
 
     const { offset, limit } = getPagination(params.page || 1, params.limit || 10)
 
@@ -28,7 +15,6 @@ export const getProjects = async (params: ProjectsQueryParams) => {
             `*,
       project_members!inner (*, user:profiles (*))`
         )
-        .eq('project_members.user_id', user.id)
         .range(offset, limit)
         .overrideTypes<Project[]>()
 
@@ -39,4 +25,21 @@ export const deleteProject = async (_projectId: string) => {
     const _server = await createSsr()
 
     return null
+}
+
+export const createProject = async (project: CreateProjectData) => {
+    const server = await createSsr()
+
+    const { error, data } = await server.from('projects').insert({
+        name: project.name,
+        description: project.description || null,
+        status: project.status,
+        priority: project.priority,
+    }).select().single()
+    console.log('🚀 ~ createProject ~ error:', error)
+
+    return {
+        error,
+        data,
+    }
 }

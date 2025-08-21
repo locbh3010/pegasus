@@ -14,15 +14,15 @@ import {
 import { Label } from '@/components/ui/label'
 import { useQueryParams } from '@/hooks/use-query-params'
 import { useDisclosure } from '@mantine/hooks'
+import { map } from 'lodash'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { deleteProject } from '../actions'
+import { CreateProjectModal } from '../components/create-project-modal'
+import { ProjectCard } from '../components/project-card'
+import { PROJECT_PRIORITY_MAP, PROJECT_STATUS_MAP } from '../constants'
 import { useProjectsQuery } from '../hooks/use-projects-query'
 import type { ProjectPriority, ProjectsQueryParams, ProjectStatus } from '../types'
-import { map } from 'lodash'
-import { PROJECT_PRIORITY_MAP, PROJECT_STATUS_MAP } from '../constants'
-import { ProjectCard } from '../components/project-card'
-import { CreateProjectModal } from '../components/create-project-modal'
 
 export default function ProjectsPage() {
     const { params, setParams, resetParams, hasFilters } = useQueryParams<ProjectsQueryParams>(
@@ -39,7 +39,7 @@ export default function ProjectsPage() {
         }
     )
 
-    const { data, isPending } = useProjectsQuery(params)
+    const { data, isPending, refetch } = useProjectsQuery(params)
 
     const [isCreateModalOpen, createModalHandlers] = useDisclosure(false)
     const [searchQuery, setSearchQuery] = useState('')
@@ -219,7 +219,7 @@ export default function ProjectsPage() {
                 isOpen={isCreateModalOpen}
                 onClose={createModalHandlers.close}
                 onSuccess={() => {
-                    // In a real app, this would refresh the data
+                    refetch()
                     createModalHandlers.close()
                 }}
             />

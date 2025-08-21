@@ -17,7 +17,7 @@ export enum ProjectPriority {
     URGENT = 'urgent',
 }
 
-export enum MemberRole {
+export enum ProjectMemberRole {
     OWNER = 'owner',
     MANAGER = 'manager',
     MEMBER = 'member',
@@ -25,16 +25,16 @@ export enum MemberRole {
 }
 
 export type Member = Tables<'project_members'> & {
-    role: MemberRole
+    role: ProjectMemberRole
     user: Tables<'profiles'>
 }
 
 export type MemberInsert = TablesInsert<'project_members'> & {
-    role: MemberRole
+    role: ProjectMemberRole
 }
 
 export type MemberUpdate = TablesUpdate<'project_members'> & {
-    role: MemberRole
+    role: ProjectMemberRole
 }
 
 // Core Project interface using Supabase types with enum overrides
